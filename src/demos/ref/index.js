@@ -5,6 +5,10 @@ export default class RefDemo extends React.Component {
     super()
     this.objRef = React.createRef()
 
+    this.state = {
+      name:"zy"
+    };
+
     // { current: null }
   }
 
@@ -19,9 +23,17 @@ export default class RefDemo extends React.Component {
     }, 1000)
   }
 
+  handleShow(){
+    console.log('323')
+    this.setState({
+      name: 'sun'
+    })
+  }
+
   render() {
     return (
       <>
+        <div onClick={this.handleShow.bind(this)}>{this.state.name}</div>
         <p ref="stringRef">span1</p>
         <p ref={ele => (this.methodRef = ele)}>span3</p>
         <p ref={this.objRef}>span3</p>
