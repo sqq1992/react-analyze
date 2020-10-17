@@ -95,9 +95,14 @@ const React = {
   Suspense: REACT_SUSPENSE_TYPE,
   unstable_SuspenseList: REACT_SUSPENSE_LIST_TYPE,
 
+  // createElement: createElement,
+  // cloneElement: cloneElement,
+  // createFactory: createFactory,
+
   createElement: __DEV__ ? createElementWithValidation : createElement,
   cloneElement: __DEV__ ? cloneElementWithValidation : cloneElement,
   createFactory: __DEV__ ? createFactoryWithValidation : createFactory,
+
   isValidElement: isValidElement,
 
   version: ReactVersion,
