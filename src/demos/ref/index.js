@@ -25,6 +25,7 @@ export default class RefDemo extends React.Component {
 
   handleShow(){
     console.log('323')
+    let a = ((((500 - 2 + 5000 / 10) / 25) | 0) + 1) * 25
     this.setState({
       name: 'sun'
     })
