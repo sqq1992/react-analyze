@@ -7,15 +7,9 @@
  * @flow
  */
 
-import type {
-  ReactContext,
-  ReactProviderType,
-  ReactEventResponder,
-  ReactEventResponderListener,
-} from 'shared/ReactTypes';
+import type {ReactContext, ReactProviderType} from 'shared/ReactTypes';
 import type {Fiber} from 'react-reconciler/src/ReactFiber';
 import type {Hook} from 'react-reconciler/src/ReactFiberHooks';
-import type {Dispatcher as DispatcherType} from 'react-reconciler/src/ReactFiberHooks';
 
 import ErrorStackParser from 'error-stack-parser';
 import ReactSharedInternals from 'shared/ReactSharedInternals';
@@ -26,7 +20,7 @@ import {
   ForwardRef,
 } from 'shared/ReactWorkTags';
 
-type CurrentDispatcherRef = typeof ReactSharedInternals.ReactCurrentDispatcher;
+const ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
 
 // Used to track hooks called during a render
 
@@ -60,8 +54,7 @@ function getPrimitiveStackCache(): Map<string, Array<any>> {
       Dispatcher.useRef(null);
       Dispatcher.useLayoutEffect(() => {});
       Dispatcher.useEffect(() => {});
-      Dispatcher.useImperativeHandle(undefined, () => null);
-      Dispatcher.useDebugValue(null);
+      Dispatcher.useImperativeMethods(undefined, () => null);
       Dispatcher.useCallback(() => {});
       Dispatcher.useMemo(() => null);
     } finally {
@@ -120,18 +113,13 @@ function useState<S>(
   return [state, (action: BasicStateAction<S>) => {}];
 }
 
-function useReducer<S, I, A>(
+function useReducer<S, A>(
   reducer: (S, A) => S,
-  initialArg: I,
-  init?: I => S,
+  initialState: S,
+  initialAction: A | void | null,
 ): [S, Dispatch<A>] {
   let hook = nextHook();
-  let state;
-  if (hook !== null) {
-    state = hook.memoizedState;
-  } else {
-    state = init !== undefined ? init(initialArg) : ((initialArg: any): S);
-  }
+  let state = hook !== null ? hook.memoizedState : initialState;
   hookLog.push({
     primitive: 'Reducer',
     stackError: new Error(),
@@ -152,7 +140,7 @@ function useRef<T>(initialValue: T): {current: T} {
 }
 
 function useLayoutEffect(
-  create: () => (() => void) | void,
+  create: () => mixed,
   inputs: Array<mixed> | void | null,
 ): void {
   nextHook();
@@ -164,14 +152,14 @@ function useLayoutEffect(
 }
 
 function useEffect(
-  create: () => (() => void) | void,
+  create: () => mixed,
   inputs: Array<mixed> | void | null,
 ): void {
   nextHook();
   hookLog.push({primitive: 'Effect', stackError: new Error(), value: create});
 }
 
-function useImperativeHandle<T>(
+function useImperativeMethods<T>(
   ref: {current: T | null} | ((inst: T | null) => mixed) | null | void,
   create: () => T,
   inputs: Array<mixed> | void | null,
@@ -186,17 +174,9 @@ function useImperativeHandle<T>(
     instance = ref.current;
   }
   hookLog.push({
-    primitive: 'ImperativeHandle',
+    primitive: 'ImperativeMethods',
     stackError: new Error(),
     value: instance,
-  });
-}
-
-function useDebugValue(value: any, formatterFn: ?(value: any) => any) {
-  hookLog.push({
-    primitive: 'DebugValue',
-    stackError: new Error(),
-    value: typeof formatterFn === 'function' ? formatterFn(value) : value,
   });
 }
 
@@ -220,47 +200,27 @@ function useMemo<T>(
   return value;
 }
 
-function useResponder(
-  responder: ReactEventResponder<any, any>,
-  listenerProps: Object,
-): ReactEventResponderListener<any, any> {
-  // Don't put the actual event responder object in, just its displayName
-  const value = {
-    responder: responder.displayName || 'EventResponder',
-    props: listenerProps,
-  };
-  hookLog.push({primitive: 'Responder', stackError: new Error(), value});
-  return {
-    responder,
-    props: listenerProps,
-  };
-}
-
-const Dispatcher: DispatcherType = {
+const Dispatcher = {
   readContext,
   useCallback,
   useContext,
   useEffect,
-  useImperativeHandle,
-  useDebugValue,
+  useImperativeMethods,
   useLayoutEffect,
   useMemo,
   useReducer,
   useRef,
   useState,
-  useResponder,
 };
 
 // Inspect
 
-export type HooksNode = {
-  id: number | null,
-  isStateEditable: boolean,
+type HooksNode = {
   name: string,
   value: mixed,
   subHooks: Array<HooksNode>,
 };
-export type HooksTree = Array<HooksNode>;
+type HooksTree = Array<HooksNode>;
 
 // Don't assume
 //
@@ -397,7 +357,6 @@ function buildTree(rootStack, readHookLog): HooksTree {
   let rootChildren = [];
   let prevStack = null;
   let levelChildren = rootChildren;
-  let nativeHookID = 0;
   let stackOfChildren = [];
   for (let i = 0; i < readHookLog.length; i++) {
     let hook = readHookLog[i];
@@ -428,10 +387,8 @@ function buildTree(rootStack, readHookLog): HooksTree {
       for (let j = stack.length - commonSteps - 1; j >= 1; j--) {
         let children = [];
         levelChildren.push({
-          id: null,
-          isStateEditable: false,
           name: parseCustomHookName(stack[j - 1].functionName),
-          value: undefined,
+          value: undefined, // TODO: Support custom inspectable values.
           subHooks: children,
         });
         stackOfChildren.push(levelChildren);
@@ -439,81 +396,22 @@ function buildTree(rootStack, readHookLog): HooksTree {
       }
       prevStack = stack;
     }
-    const {primitive} = hook;
-
-    // For now, the "id" of stateful hooks is just the stateful hook index.
-    // Custom hooks have no ids, nor do non-stateful native hooks (e.g. Context, DebugValue).
-    const id =
-      primitive === 'Context' || primitive === 'DebugValue'
-        ? null
-        : nativeHookID++;
-
-    // For the time being, only State and Reducer hooks support runtime overrides.
-    const isStateEditable = primitive === 'Reducer' || primitive === 'State';
-
     levelChildren.push({
-      id,
-      isStateEditable,
-      name: primitive,
+      name: hook.primitive,
       value: hook.value,
       subHooks: [],
     });
   }
-
-  // Associate custom hook values (useDebugValue() hook entries) with the correct hooks.
-  processDebugValues(rootChildren, null);
-
   return rootChildren;
-}
-
-// Custom hooks support user-configurable labels (via the special useDebugValue() hook).
-// That hook adds user-provided values to the hooks tree,
-// but these values aren't intended to appear alongside of the other hooks.
-// Instead they should be attributed to their parent custom hook.
-// This method walks the tree and assigns debug values to their custom hook owners.
-function processDebugValues(
-  hooksTree: HooksTree,
-  parentHooksNode: HooksNode | null,
-): void {
-  let debugValueHooksNodes: Array<HooksNode> = [];
-
-  for (let i = 0; i < hooksTree.length; i++) {
-    const hooksNode = hooksTree[i];
-    if (hooksNode.name === 'DebugValue' && hooksNode.subHooks.length === 0) {
-      hooksTree.splice(i, 1);
-      i--;
-      debugValueHooksNodes.push(hooksNode);
-    } else {
-      processDebugValues(hooksNode.subHooks, hooksNode);
-    }
-  }
-
-  // Bubble debug value labels to their custom hook owner.
-  // If there is no parent hook, just ignore them for now.
-  // (We may warn about this in the future.)
-  if (parentHooksNode !== null) {
-    if (debugValueHooksNodes.length === 1) {
-      parentHooksNode.value = debugValueHooksNodes[0].value;
-    } else if (debugValueHooksNodes.length > 1) {
-      parentHooksNode.value = debugValueHooksNodes.map(({value}) => value);
-    }
-  }
 }
 
 export function inspectHooks<Props>(
   renderFunction: Props => React$Node,
   props: Props,
-  currentDispatcher: ?CurrentDispatcherRef,
 ): HooksTree {
-  // DevTools will pass the current renderer's injected dispatcher.
-  // Other apps might compile debug hooks as part of their app though.
-  if (currentDispatcher == null) {
-    currentDispatcher = ReactSharedInternals.ReactCurrentDispatcher;
-  }
-
-  let previousDispatcher = currentDispatcher.current;
+  let previousDispatcher = ReactCurrentOwner.currentDispatcher;
   let readHookLog;
-  currentDispatcher.current = Dispatcher;
+  ReactCurrentOwner.currentDispatcher = Dispatcher;
   let ancestorStackError;
   try {
     ancestorStackError = new Error();
@@ -521,7 +419,7 @@ export function inspectHooks<Props>(
   } finally {
     readHookLog = hookLog;
     hookLog = [];
-    currentDispatcher.current = previousDispatcher;
+    ReactCurrentOwner.currentDispatcher = previousDispatcher;
   }
   let rootStack = ErrorStackParser.parse(ancestorStackError);
   return buildTree(rootStack, readHookLog);
@@ -552,11 +450,10 @@ function inspectHooksOfForwardRef<Props, Ref>(
   renderFunction: (Props, Ref) => React$Node,
   props: Props,
   ref: Ref,
-  currentDispatcher: CurrentDispatcherRef,
 ): HooksTree {
-  let previousDispatcher = currentDispatcher.current;
+  let previousDispatcher = ReactCurrentOwner.currentDispatcher;
   let readHookLog;
-  currentDispatcher.current = Dispatcher;
+  ReactCurrentOwner.currentDispatcher = Dispatcher;
   let ancestorStackError;
   try {
     ancestorStackError = new Error();
@@ -564,7 +461,7 @@ function inspectHooksOfForwardRef<Props, Ref>(
   } finally {
     readHookLog = hookLog;
     hookLog = [];
-    currentDispatcher.current = previousDispatcher;
+    ReactCurrentOwner.currentDispatcher = previousDispatcher;
   }
   let rootStack = ErrorStackParser.parse(ancestorStackError);
   return buildTree(rootStack, readHookLog);
@@ -585,16 +482,7 @@ function resolveDefaultProps(Component, baseProps) {
   return baseProps;
 }
 
-export function inspectHooksOfFiber(
-  fiber: Fiber,
-  currentDispatcher: ?CurrentDispatcherRef,
-) {
-  // DevTools will pass the current renderer's injected dispatcher.
-  // Other apps might compile debug hooks as part of their app though.
-  if (currentDispatcher == null) {
-    currentDispatcher = ReactSharedInternals.ReactCurrentDispatcher;
-  }
-
+export function inspectHooksOfFiber(fiber: Fiber) {
   if (
     fiber.tag !== FunctionComponent &&
     fiber.tag !== SimpleMemoComponent &&
@@ -618,14 +506,9 @@ export function inspectHooksOfFiber(
   try {
     setupContexts(contextMap, fiber);
     if (fiber.tag === ForwardRef) {
-      return inspectHooksOfForwardRef(
-        type.render,
-        props,
-        fiber.ref,
-        currentDispatcher,
-      );
+      return inspectHooksOfForwardRef(type.render, props, fiber.ref);
     }
-    return inspectHooks(type, props, currentDispatcher);
+    return inspectHooks(type, props);
   } finally {
     currentHook = null;
     restoreContexts(contextMap);

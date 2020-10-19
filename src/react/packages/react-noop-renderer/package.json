@@ -4,11 +4,7 @@
   "private": true,
   "description": "React package for testing the Fiber reconciler.",
   "main": "index.js",
-  "repository": {
-    "type" : "git",
-    "url" : "https://github.com/facebook/react.git",
-    "directory": "packages/react-noop-renderer"
-  },
+  "repository": "facebook/react",
   "license": "MIT",
   "dependencies": {
     "object-assign": "^4.1.1",

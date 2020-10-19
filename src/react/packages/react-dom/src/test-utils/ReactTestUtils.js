@@ -15,17 +15,15 @@ import {
   HostComponent,
   HostText,
 } from 'shared/ReactWorkTags';
-import SyntheticEvent from 'legacy-events/SyntheticEvent';
+import SyntheticEvent from 'events/SyntheticEvent';
 import invariant from 'shared/invariant';
-import lowPriorityWarningWithoutStack from 'shared/lowPriorityWarningWithoutStack';
+import lowPriorityWarning from 'shared/lowPriorityWarning';
 import {ELEMENT_NODE} from '../shared/HTMLNodeType';
 import * as DOMTopLevelEventTypes from '../events/DOMTopLevelEventTypes';
-import {PLUGIN_EVENT_SYSTEM} from 'legacy-events/EventSystemFlags';
-import act from './ReactTestUtilsAct';
 
 const {findDOMNode} = ReactDOM;
 // Keep in sync with ReactDOMUnstableNativeDependencies.js
-// ReactDOM.js, and ReactTestUtilsAct.js:
+// and ReactDOM.js:
 const [
   getInstanceFromNode,
   /* eslint-disable no-unused-vars */
@@ -40,10 +38,6 @@ const [
   restoreStateIfNeeded,
   dispatchEvent,
   runEventsInBatch,
-  /* eslint-disable no-unused-vars */
-  flushPassiveEffects,
-  IsThisRendererActing,
-  /* eslint-enable no-unused-vars */
 ] = ReactDOM.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.Events;
 
 function Event(suffix) {}
@@ -63,7 +57,7 @@ let hasWarnedAboutDeprecatedMockComponent = false;
  */
 function simulateNativeEventOnNode(topLevelType, node, fakeNativeEvent) {
   fakeNativeEvent.target = node;
-  dispatchEvent(topLevelType, PLUGIN_EVENT_SYSTEM, fakeNativeEvent);
+  dispatchEvent(topLevelType, fakeNativeEvent);
 }
 
 /**
@@ -361,7 +355,7 @@ const ReactTestUtils = {
   mockComponent: function(module, mockTagName) {
     if (!hasWarnedAboutDeprecatedMockComponent) {
       hasWarnedAboutDeprecatedMockComponent = true;
-      lowPriorityWarningWithoutStack(
+      lowPriorityWarning(
         false,
         'ReactTestUtils.mockComponent() is deprecated. ' +
           'Use shallow rendering or jest.mock() instead.\n\n' +
@@ -386,8 +380,6 @@ const ReactTestUtils = {
 
   Simulate: null,
   SimulateNative: {},
-
-  act,
 };
 
 /**
@@ -441,7 +433,7 @@ function makeSimulator(eventType) {
 
     ReactDOM.unstable_batchedUpdates(function() {
       // Normally extractEvent enqueues a state restore, but we'll just always
-      // do that since we're by-passing it here.
+      // do that since we we're by-passing it here.
       enqueueStateRestore(domNode);
       runEventsInBatch(event);
     });

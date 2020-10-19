@@ -11,15 +11,14 @@ import type {Fiber} from 'react-reconciler/src/ReactFiber';
 import type {FiberRoot} from 'react-reconciler/src/ReactFiberRoot';
 import type {Instance, TextInstance} from './ReactTestHostConfig';
 
-import * as Scheduler from 'scheduler/unstable_mock';
 import {
   getPublicRootInstance,
   createContainer,
   updateContainer,
   flushSync,
   injectIntoDevTools,
-  batchedUpdates,
 } from 'react-reconciler/inline.test';
+import {batchedUpdates} from 'events/ReactGenericBatching';
 import {findCurrentFiberUsingSlowPath} from 'react-reconciler/reflection';
 import {
   Fragment,
@@ -37,14 +36,18 @@ import {
   MemoComponent,
   SimpleMemoComponent,
   IncompleteClassComponent,
-  ScopeComponent,
 } from 'shared/ReactWorkTags';
 import invariant from 'shared/invariant';
 import ReactVersion from 'shared/ReactVersion';
-import act from './ReactTestRendererAct';
 
 import {getPublicInstance} from './ReactTestHostConfig';
-import {ConcurrentRoot, LegacyRoot} from 'shared/ReactRootTags';
+import {
+  flushAll,
+  flushNumberOfYields,
+  clearYields,
+  setNowImplementation,
+  yieldValue,
+} from './ReactTestRendererScheduling';
 
 type TestRendererOptions = {
   createNodeMock: (element: React$Element<any>) => any,
@@ -204,7 +207,6 @@ function toTree(node: ?Fiber) {
     case ForwardRef:
     case MemoComponent:
     case IncompleteClassComponent:
-    case ScopeComponent:
       return childrenToTree(node.child);
     default:
       invariant(
@@ -422,8 +424,6 @@ function propsMatch(props: Object, filter: Object): boolean {
 }
 
 const ReactTestRendererFiber = {
-  _Scheduler: Scheduler,
-
   create(element: React$Element<any>, options: TestRendererOptions) {
     let createNodeMock = defaultTestOptions.createNodeMock;
     let isConcurrent = false;
@@ -442,16 +442,13 @@ const ReactTestRendererFiber = {
     };
     let root: FiberRoot | null = createContainer(
       container,
-      isConcurrent ? ConcurrentRoot : LegacyRoot,
+      isConcurrent,
       false,
-      null,
     );
     invariant(root != null, 'something went wrong');
     updateContainer(element, root, null, null);
 
     const entry = {
-      _Scheduler: Scheduler,
-
       root: undefined, // makes flow happy
       // we define a 'getter' for 'root' below using 'Object.defineProperty'
       toJSON(): Array<ReactTestRendererNode> | ReactTestRendererNode | null {
@@ -515,9 +512,13 @@ const ReactTestRendererFiber = {
         return getPublicRootInstance(root);
       },
 
+      unstable_flushAll: flushAll,
       unstable_flushSync<T>(fn: () => T): T {
+        clearYields();
         return flushSync(fn);
       },
+      unstable_flushNumberOfYields: flushNumberOfYields,
+      unstable_clearYields: clearYields,
     };
 
     Object.defineProperty(
@@ -548,10 +549,14 @@ const ReactTestRendererFiber = {
     return entry;
   },
 
-  /* eslint-disable-next-line camelcase */
-  unstable_batchedUpdates: batchedUpdates,
+  unstable_yield: yieldValue,
+  unstable_clearYields: clearYields,
 
-  act,
+  /* eslint-disable camelcase */
+  unstable_batchedUpdates: batchedUpdates,
+  /* eslint-enable camelcase */
+
+  unstable_setNowImplementation: setNowImplementation,
 };
 
 const fiberToWrapper = new WeakMap();

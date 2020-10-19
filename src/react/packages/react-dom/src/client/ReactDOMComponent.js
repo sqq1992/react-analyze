@@ -9,13 +9,10 @@
 
 // TODO: direct imports like some-package/src/* are bad. Fix me.
 import {getCurrentFiberOwnerNameInDevOrNull} from 'react-reconciler/src/ReactCurrentFiber';
-import {registrationNameModules} from 'legacy-events/EventPluginRegistry';
+import {registrationNameModules} from 'events/EventPluginRegistry';
 import warning from 'shared/warning';
 import {canUseDOM} from 'shared/ExecutionEnvironment';
 import warningWithoutStack from 'shared/warningWithoutStack';
-import endsWith from 'shared/endsWith';
-import type {DOMTopLevelEventType} from 'legacy-events/TopLevelEventTypes';
-import {setListenToResponderEventTypes} from '../events/DOMEventResponderSystem';
 
 import {
   getValueForAttribute,
@@ -60,12 +57,7 @@ import {
   TOP_SUBMIT,
   TOP_TOGGLE,
 } from '../events/DOMTopLevelEventTypes';
-import {
-  listenTo,
-  trapBubbledEvent,
-  getListeningSetForElement,
-} from '../events/ReactBrowserEventEmitter';
-import {trapEventForResponderEventSystem} from '../events/ReactDOMEventListener.js';
+import {listenTo, trapBubbledEvent} from '../events/ReactBrowserEventEmitter';
 import {mediaEventTypes} from '../events/DOMTopLevelEventTypes';
 import {
   createDangerousStringForStyles,
@@ -85,16 +77,9 @@ import possibleStandardNames from '../shared/possibleStandardNames';
 import {validateProperties as validateARIAProperties} from '../shared/ReactDOMInvalidARIAHook';
 import {validateProperties as validateInputProperties} from '../shared/ReactDOMNullInputValuePropHook';
 import {validateProperties as validateUnknownProperties} from '../shared/ReactDOMUnknownPropertyHook';
-import {toStringOrTrustedType} from './ToStringValue';
-
-import {
-  enableFlareAPI,
-  enableTrustedTypesIntegration,
-} from 'shared/ReactFeatureFlags';
 
 let didWarnInvalidHydration = false;
 let didWarnShadyDOM = false;
-let didWarnScriptTags = false;
 
 const DANGEROUSLY_SET_INNER_HTML = 'dangerouslySetInnerHTML';
 const SUPPRESS_CONTENT_EDITABLE_WARNING = 'suppressContentEditableWarning';
@@ -103,7 +88,6 @@ const AUTOFOCUS = 'autoFocus';
 const CHILDREN = 'children';
 const STYLE = 'style';
 const HTML = '__html';
-const LISTENERS = 'listeners';
 
 const {html: HTML_NAMESPACE} = Namespaces;
 
@@ -269,10 +253,7 @@ if (__DEV__) {
   };
 }
 
-function ensureListeningTo(
-  rootContainerElement: Element | Node,
-  registrationName: string,
-): void {
+function ensureListeningTo(rootContainerElement, registrationName) {
   const isDocumentOrFragment =
     rootContainerElement.nodeType === DOCUMENT_NODE ||
     rootContainerElement.nodeType === DOCUMENT_FRAGMENT_NODE;
@@ -346,7 +327,6 @@ function setInitialDOMProperties(
         setTextContent(domElement, '' + nextProp);
       }
     } else if (
-      (enableFlareAPI && propKey === LISTENERS) ||
       propKey === SUPPRESS_CONTENT_EDITABLE_WARNING ||
       propKey === SUPPRESS_HYDRATION_WARNING
     ) {
@@ -427,18 +407,6 @@ export function createElement(
       // Create the script via .innerHTML so its "parser-inserted" flag is
       // set to true and it does not execute
       const div = ownerDocument.createElement('div');
-      if (__DEV__) {
-        if (enableTrustedTypesIntegration && !didWarnScriptTags) {
-          warning(
-            false,
-            'Encountered a script tag while rendering React component. ' +
-              'Scripts inside React components are never executed when rendering ' +
-              'on the client. Consider using template tag instead ' +
-              '(https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template).',
-          );
-          didWarnScriptTags = true;
-        }
-      }
       div.innerHTML = '<script><' + '/script>'; // eslint-disable-line
       // This is guaranteed to yield a script element.
       const firstChild = ((div.firstChild: any): HTMLScriptElement);
@@ -451,25 +419,14 @@ export function createElement(
       // See discussion in https://github.com/facebook/react/pull/6896
       // and discussion in https://bugzilla.mozilla.org/show_bug.cgi?id=1276240
       domElement = ownerDocument.createElement(type);
-      // Normally attributes are assigned in `setInitialDOMProperties`, however the `multiple` and `size`
-      // attributes on `select`s needs to be added before `option`s are inserted.
-      // This prevents:
-      // - a bug where the `select` does not scroll to the correct option because singular
-      //  `select` elements automatically pick the first item #13222
-      // - a bug where the `select` set the first item as selected despite the `size` attribute #14239
+      // Normally attributes are assigned in `setInitialDOMProperties`, however the `multiple`
+      // attribute on `select`s needs to be added before `option`s are inserted. This prevents
+      // a bug where the `select` does not scroll to the correct option because singular
+      // `select` elements automatically pick the first item.
       // See https://github.com/facebook/react/issues/13222
-      // and https://github.com/facebook/react/issues/14239
-      if (type === 'select') {
+      if (type === 'select' && props.multiple) {
         const node = ((domElement: any): HTMLSelectElement);
-        if (props.multiple) {
-          node.multiple = true;
-        } else if (props.size) {
-          // Setting a size greater than 1 causes a select to behave like `multiple=true`, where
-          // it is possible that no option is selected.
-          //
-          // This is only necessary when a select in "single selection mode".
-          node.size = props.size;
-        }
+        node.multiple = true;
       }
     }
   } else {
@@ -537,7 +494,6 @@ export function setInitialProperties(
   switch (tag) {
     case 'iframe':
     case 'object':
-    case 'embed':
       trapBubbledEvent(TOP_LOAD, domElement);
       props = rawProps;
       break;
@@ -715,7 +671,6 @@ export function diffProperties(
     } else if (propKey === DANGEROUSLY_SET_INNER_HTML || propKey === CHILDREN) {
       // Noop. This is handled by the clear text mechanism.
     } else if (
-      (enableFlareAPI && propKey === LISTENERS) ||
       propKey === SUPPRESS_CONTENT_EDITABLE_WARNING ||
       propKey === SUPPRESS_HYDRATION_WARNING
     ) {
@@ -793,10 +748,7 @@ export function diffProperties(
       const lastHtml = lastProp ? lastProp[HTML] : undefined;
       if (nextHtml != null) {
         if (lastHtml !== nextHtml) {
-          (updatePayload = updatePayload || []).push(
-            propKey,
-            toStringOrTrustedType(nextHtml),
-          );
+          (updatePayload = updatePayload || []).push(propKey, '' + nextHtml);
         }
       } else {
         // TODO: It might be too late to clear this if we have children
@@ -810,7 +762,6 @@ export function diffProperties(
         (updatePayload = updatePayload || []).push(propKey, '' + nextProp);
       }
     } else if (
-      (enableFlareAPI && propKey === LISTENERS) ||
       propKey === SUPPRESS_CONTENT_EDITABLE_WARNING ||
       propKey === SUPPRESS_HYDRATION_WARNING
     ) {
@@ -937,7 +888,6 @@ export function diffHydratedProperties(
   switch (tag) {
     case 'iframe':
     case 'object':
-    case 'embed':
       trapBubbledEvent(TOP_LOAD, domElement);
       break;
     case 'video':
@@ -1065,7 +1015,6 @@ export function diffHydratedProperties(
       if (suppressHydrationWarning) {
         // Don't bother comparing. We're ignoring all these warnings.
       } else if (
-        (enableFlareAPI && propKey === LISTENERS) ||
         propKey === SUPPRESS_CONTENT_EDITABLE_WARNING ||
         propKey === SUPPRESS_HYDRATION_WARNING ||
         // Controlled attributes are not validated
@@ -1303,38 +1252,4 @@ export function restoreControlledState(
       ReactDOMSelectRestoreControlledState(domElement, props);
       return;
   }
-}
-
-export function listenToEventResponderEventTypes(
-  eventTypes: Array<string>,
-  element: Element | Document,
-): void {
-  if (enableFlareAPI) {
-    // Get the listening Set for this element. We use this to track
-    // what events we're listening to.
-    const listeningSet = getListeningSetForElement(element);
-
-    // Go through each target event type of the event responder
-    for (let i = 0, length = eventTypes.length; i < length; ++i) {
-      const eventType = eventTypes[i];
-      const isPassive = !endsWith(eventType, '_active');
-      const eventKey = isPassive ? eventType + '_passive' : eventType;
-      const targetEventType = isPassive
-        ? eventType
-        : eventType.substring(0, eventType.length - 7);
-      if (!listeningSet.has(eventKey)) {
-        trapEventForResponderEventSystem(
-          element,
-          ((targetEventType: any): DOMTopLevelEventType),
-          isPassive,
-        );
-        listeningSet.add(eventKey);
-      }
-    }
-  }
-}
-
-// We can remove this once the event API is stable and out of a flag
-if (enableFlareAPI) {
-  setListenToResponderEventTypes(listenToEventResponderEventTypes);
 }

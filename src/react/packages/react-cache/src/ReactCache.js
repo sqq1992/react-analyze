@@ -46,12 +46,11 @@ const Pending = 0;
 const Resolved = 1;
 const Rejected = 2;
 
-const ReactCurrentDispatcher =
-  React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED
-    .ReactCurrentDispatcher;
+const currentOwner =
+  React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner;
 
 function readContext(Context, observedBits) {
-  const dispatcher = ReactCurrentDispatcher.current;
+  const dispatcher = currentOwner.currentDispatcher;
   if (dispatcher === null) {
     throw new Error(
       'react-cache: read and preload may only be called from within a ' +

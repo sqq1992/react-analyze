@@ -7,19 +7,15 @@
  * @flow
  */
 
-import {PLUGIN_EVENT_SYSTEM} from 'legacy-events/EventSystemFlags';
-import {
-  getListener,
-  runExtractedPluginEventsInBatch,
-} from 'legacy-events/EventPluginHub';
-import {registrationNameModules} from 'legacy-events/EventPluginRegistry';
-import {batchedUpdates} from 'legacy-events/ReactGenericBatching';
+import {getListener, runExtractedEventsInBatch} from 'events/EventPluginHub';
+import {registrationNameModules} from 'events/EventPluginRegistry';
+import {batchedUpdates} from 'events/ReactGenericBatching';
 import warningWithoutStack from 'shared/warningWithoutStack';
 
 import {getInstanceFromNode} from './ReactNativeComponentTree';
 
-import type {AnyNativeEvent} from 'legacy-events/PluginModuleType';
-import type {TopLevelType} from 'legacy-events/TopLevelEventTypes';
+import type {AnyNativeEvent} from 'events/PluginModuleType';
+import type {TopLevelType} from 'events/TopLevelEventTypes';
 
 export {getListener, registrationNameModules as registrationNames};
 
@@ -99,9 +95,8 @@ function _receiveRootNodeIDEvent(
   const nativeEvent = nativeEventParam || EMPTY_NATIVE_EVENT;
   const inst = getInstanceFromNode(rootNodeID);
   batchedUpdates(function() {
-    runExtractedPluginEventsInBatch(
+    runExtractedEventsInBatch(
       topLevelType,
-      PLUGIN_EVENT_SYSTEM,
       inst,
       nativeEvent,
       nativeEvent.target,

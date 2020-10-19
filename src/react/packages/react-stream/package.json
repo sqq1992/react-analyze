@@ -16,11 +16,7 @@
     "cjs/"
   ],
   "main": "index.js",
-  "repository": {
-    "type" : "git",
-    "url" : "https://github.com/facebook/react.git",
-    "directory": "packages/react-stream"
-  },
+  "repository": "facebook/react",
   "engines": {
     "node": ">=0.10.0"
   },

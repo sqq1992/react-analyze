@@ -14,10 +14,15 @@ import typeof * as FeatureFlagsShimType from './ReactFeatureFlags.www';
 export const {
   debugRenderPhaseSideEffects,
   debugRenderPhaseSideEffectsForStrictMode,
+  enableSuspenseServerRenderer,
+  replayFailedUnitOfWorkWithInvokeGuardedCallback,
+  warnAboutDeprecatedLifecycles,
   disableInputAttributeSyncing,
-  enableTrustedTypesIntegration,
-  enableSelectiveHydration,
+  warnAboutShorthandPropertyCollision,
 } = require('ReactFeatureFlags');
+
+// The rest of the flags are static for better dead code elimination.
+export const enableHooks = true;
 
 // In www, we have experimental support for gathering data
 // from User Timing API calls in production. By default, we
@@ -31,21 +36,7 @@ export const enableProfilerTimer = __PROFILE__;
 export const enableSchedulerTracing = __PROFILE__;
 export const enableSchedulerDebugging = true;
 
-export const replayFailedUnitOfWorkWithInvokeGuardedCallback = false;
-export const warnAboutDeprecatedLifecycles = true;
-export const warnAboutShorthandPropertyCollision = false;
-export const warnAboutDeprecatedSetNativeProps = false;
-export const disableLegacyContext = false;
-export const warnAboutStringRefs = false;
-export const warnAboutDefaultPropsOnFunctionComponents = false;
-export const disableSchedulerTimeoutBasedOnReactExpirationTime = false;
-export const enableUserBlockingEvents = true;
-
 export const enableStableConcurrentModeAPIs = false;
-
-export const enableSuspenseServerRenderer = true;
-
-export const disableJavaScriptURLs = true;
 
 let refCount = 0;
 export function addUserTimingListener() {
@@ -73,20 +64,6 @@ function updateFlagOutsideOfReactCallStack() {
     });
   }
 }
-
-export const enableFlareAPI = true;
-
-export const enableFundamentalAPI = false;
-
-export const enableScopeAPI = true;
-
-export const enableJSXTransformAPI = true;
-
-export const warnAboutUnmockedScheduler = true;
-
-export const enableSuspenseCallback = true;
-
-export const flushSuspenseFallbacksInTests = true;
 
 // Flow magic to verify the exports of this file match the original version.
 // eslint-disable-next-line no-unused-vars

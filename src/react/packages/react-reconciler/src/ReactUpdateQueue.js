@@ -86,14 +86,8 @@
 
 import type {Fiber} from './ReactFiber';
 import type {ExpirationTime} from './ReactFiberExpirationTime';
-import type {SuspenseConfig} from './ReactFiberSuspenseConfig';
-import type {ReactPriorityLevel} from './SchedulerWithReactIntegration';
 
 import {NoWork} from './ReactFiberExpirationTime';
-import {
-  enterDisallowedContextReadInDEV,
-  exitDisallowedContextReadInDEV,
-} from './ReactFiberNewContext';
 import {Callback, ShouldCapture, DidCapture} from 'shared/ReactSideEffectTags';
 import {ClassComponent} from 'shared/ReactWorkTags';
 
@@ -103,18 +97,12 @@ import {
 } from 'shared/ReactFeatureFlags';
 
 import {StrictMode} from './ReactTypeOfMode';
-import {
-  markRenderEventTimeAndConfig,
-  markUnprocessedUpdateTime,
-} from './ReactFiberWorkLoop';
 
 import invariant from 'shared/invariant';
 import warningWithoutStack from 'shared/warningWithoutStack';
-import {getCurrentPriorityLevel} from './SchedulerWithReactIntegration';
 
 export type Update<State> = {
   expirationTime: ExpirationTime,
-  suspenseConfig: null | SuspenseConfig,
 
   tag: 0 | 1 | 2 | 3,
   payload: any,
@@ -122,9 +110,6 @@ export type Update<State> = {
 
   next: Update<State> | null,
   nextEffect: Update<State> | null,
-
-  //DEV only
-  priority?: ReactPriorityLevel,
 };
 
 export type UpdateQueue<State> = {
@@ -201,13 +186,9 @@ function cloneUpdateQueue<State>(
   return queue;
 }
 
-export function createUpdate(
-  expirationTime: ExpirationTime,
-  suspenseConfig: null | SuspenseConfig,
-): Update<*> {
-  let update: Update<*> = {
-    expirationTime,
-    suspenseConfig,
+export function createUpdate(expirationTime: ExpirationTime): Update<*> {
+  return {
+    expirationTime: expirationTime,
 
     tag: UpdateState,
     payload: null,
@@ -216,10 +197,6 @@ export function createUpdate(
     next: null,
     nextEffect: null,
   };
-  if (__DEV__) {
-    update.priority = getCurrentPriorityLevel();
-  }
-  return update;
 }
 
 function appendUpdateToQueue<State>(
@@ -292,6 +269,23 @@ export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
     }
   }
 
+  if (__DEV__) {
+    if (
+      fiber.tag === ClassComponent &&
+      (currentlyProcessingQueue === queue1 ||
+        (queue2 !== null && currentlyProcessingQueue === queue2)) &&
+      !didWarnUpdateInsideUpdate
+    ) {
+      warningWithoutStack(
+        false,
+        'An update (setState, replaceState, or forceUpdate) was scheduled ' +
+          'from inside an update function. Update functions should be pure, ' +
+          'with zero side-effects. Consider using componentDidUpdate or a ' +
+          'callback.',
+      );
+      didWarnUpdateInsideUpdate = true;
+    }
+  }
 }
 
 export function enqueueCapturedUpdate<State>(
@@ -354,7 +348,6 @@ function getStateFromUpdate<State>(
       if (typeof payload === 'function') {
         // Updater function
         if (__DEV__) {
-          enterDisallowedContextReadInDEV();
           if (
             debugRenderPhaseSideEffects ||
             (debugRenderPhaseSideEffectsForStrictMode &&
@@ -363,11 +356,7 @@ function getStateFromUpdate<State>(
             payload.call(instance, prevState, nextProps);
           }
         }
-        const nextState = payload.call(instance, prevState, nextProps);
-        if (__DEV__) {
-          exitDisallowedContextReadInDEV();
-        }
-        return nextState;
+        return payload.call(instance, prevState, nextProps);
       }
       // State object
       return payload;
@@ -383,7 +372,6 @@ function getStateFromUpdate<State>(
       if (typeof payload === 'function') {
         // Updater function
         if (__DEV__) {
-          enterDisallowedContextReadInDEV();
           if (
             debugRenderPhaseSideEffects ||
             (debugRenderPhaseSideEffectsForStrictMode &&
@@ -393,9 +381,6 @@ function getStateFromUpdate<State>(
           }
         }
         partialState = payload.call(instance, prevState, nextProps);
-        if (__DEV__) {
-          exitDisallowedContextReadInDEV();
-        }
       } else {
         // Partial state object
         partialState = payload;
@@ -456,17 +441,8 @@ export function processUpdateQueue<State>(
         newExpirationTime = updateExpirationTime;
       }
     } else {
-      // This update does have sufficient priority.
-
-      // Mark the event time of this update as relevant to this render pass.
-      // TODO: This should ideally use the true event time of this update rather than
-      // its priority which is a derived and not reverseable value.
-      // TODO: We should skip this update if it was already committed but currently
-      // we have no way of detecting the difference between a committed and suspended
-      // update here.
-      markRenderEventTimeAndConfig(updateExpirationTime, update.suspenseConfig);
-
-      // Process it and compute a new result.
+      // This update does have sufficient priority. Process it and compute
+      // a new result.
       resultState = getStateFromUpdate(
         workInProgress,
         queue,
@@ -566,7 +542,6 @@ export function processUpdateQueue<State>(
   // dealt with the props. Context in components that specify
   // shouldComponentUpdate is tricky; but we'll have to account for
   // that regardless.
-  markUnprocessedUpdateTime(newExpirationTime);
   workInProgress.expirationTime = newExpirationTime;
   workInProgress.memoizedState = resultState;
 

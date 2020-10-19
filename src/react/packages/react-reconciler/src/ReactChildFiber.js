@@ -30,11 +30,9 @@ import {
 import invariant from 'shared/invariant';
 import warning from 'shared/warning';
 import warningWithoutStack from 'shared/warningWithoutStack';
-import {warnAboutStringRefs} from 'shared/ReactFeatureFlags';
 
 import {
   createWorkInProgress,
-  resetWorkInProgress,
   createFiberFromElement,
   createFiberFromFragment,
   createFiberFromText,
@@ -45,12 +43,11 @@ import {
   getCurrentFiberStackInDev,
   getStackByFiberInDevAndProd,
 } from './ReactCurrentFiber';
-import {isCompatibleFamilyForHotReloading} from './ReactFiberHotReloading';
 import {StrictMode} from './ReactTypeOfMode';
 
 let didWarnAboutMaps;
 let didWarnAboutGenerators;
-let didWarnAboutStringRefs;
+let didWarnAboutStringRefInStrictMode;
 let ownerHasKeyUseWarning;
 let ownerHasFunctionTypeWarning;
 let warnForMissingKey = (child: mixed) => {};
@@ -58,7 +55,7 @@ let warnForMissingKey = (child: mixed) => {};
 if (__DEV__) {
   didWarnAboutMaps = false;
   didWarnAboutGenerators = false;
-  didWarnAboutStringRefs = {};
+  didWarnAboutStringRefInStrictMode = {};
 
   /**
    * Warn if there's no key explicitly set on dynamic arrays of children or
@@ -83,7 +80,7 @@ if (__DEV__) {
     child._store.validated = true;
 
     const currentComponentErrorInfo =
-      'Each child in a list should have a unique ' +
+      'Each child in an array or iterator should have a unique ' +
       '"key" prop. See https://fb.me/react-warning-keys for ' +
       'more information.' +
       getCurrentFiberStackInDev();
@@ -94,7 +91,7 @@ if (__DEV__) {
 
     warning(
       false,
-      'Each child in a list should have a unique ' +
+      'Each child in an array or iterator should have a unique ' +
         '"key" prop. See https://fb.me/react-warning-keys for ' +
         'more information.',
     );
@@ -115,36 +112,21 @@ function coerceRef(
     typeof mixedRef !== 'object'
   ) {
     if (__DEV__) {
-      // TODO: Clean this up once we turn on the string ref warning for
-      // everyone, because the strict mode case will no longer be relevant
-      if (returnFiber.mode & StrictMode || warnAboutStringRefs) {
+      if (returnFiber.mode & StrictMode) {
         const componentName = getComponentName(returnFiber.type) || 'Component';
-        if (!didWarnAboutStringRefs[componentName]) {
-          if (warnAboutStringRefs) {
-            warningWithoutStack(
-              false,
-              'Component "%s" contains the string ref "%s". Support for string refs ' +
-                'will be removed in a future major release. We recommend using ' +
-                'useRef() or createRef() instead. ' +
-                'Learn more about using refs safely here: ' +
-                'https://fb.me/react-strict-mode-string-ref%s',
-              componentName,
-              mixedRef,
-              getStackByFiberInDevAndProd(returnFiber),
-            );
-          } else {
-            warningWithoutStack(
-              false,
-              'A string ref, "%s", has been found within a strict mode tree. ' +
-                'String refs are a source of potential bugs and should be avoided. ' +
-                'We recommend using useRef() or createRef() instead. ' +
-                'Learn more about using refs safely here: ' +
-                'https://fb.me/react-strict-mode-string-ref%s',
-              mixedRef,
-              getStackByFiberInDevAndProd(returnFiber),
-            );
-          }
-          didWarnAboutStringRefs[componentName] = true;
+        if (!didWarnAboutStringRefInStrictMode[componentName]) {
+          warningWithoutStack(
+            false,
+            'A string ref, "%s", has been found within a strict mode tree. ' +
+              'String refs are a source of potential bugs and should be avoided. ' +
+              'We recommend using createRef() instead.' +
+              '\n%s' +
+              '\n\nLearn more about using refs safely here:' +
+              '\nhttps://fb.me/react-strict-mode-string-ref',
+            mixedRef,
+            getStackByFiberInDevAndProd(returnFiber),
+          );
+          didWarnAboutStringRefInStrictMode[componentName] = true;
         }
       }
     }
@@ -156,8 +138,7 @@ function coerceRef(
         const ownerFiber = ((owner: any): Fiber);
         invariant(
           ownerFiber.tag === ClassComponent,
-          'Function components cannot have refs. ' +
-            'Did you mean to use React.forwardRef()?',
+          'Function components cannot have refs.',
         );
         inst = ownerFiber.stateNode;
       }
@@ -396,12 +377,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     element: ReactElement,
     expirationTime: ExpirationTime,
   ): Fiber {
-    if (
-      current !== null &&
-      (current.elementType === element.type ||
-        // Keep this check inline so it only runs on the false path:
-        (__DEV__ ? isCompatibleFamilyForHotReloading(current, element) : false))
-    ) {
+    if (current !== null && current.elementType === element.type) {
       // Move based on index
       const existing = useFiber(current, element.props, expirationTime);
       existing.ref = coerceRef(returnFiber, current, element);
@@ -759,7 +735,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     newChildren: Array<*>,
     expirationTime: ExpirationTime,
   ): Fiber | null {
-    // This algorithm can't optimize by searching from both ends since we
+    // This algorithm can't optimize by searching from boths ends since we
     // don't have backpointers on fibers. I'm trying to see how far we can get
     // with that model. If it ends up not being worth the tradeoffs, we can
     // add it later.
@@ -854,7 +830,7 @@ function ChildReconciler(shouldTrackSideEffects) {
           newChildren[newIdx],
           expirationTime,
         );
-        if (newFiber === null) {
+        if (!newFiber) {
           continue;
         }
         lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
@@ -881,7 +857,7 @@ function ChildReconciler(shouldTrackSideEffects) {
         newChildren[newIdx],
         expirationTime,
       );
-      if (newFiber !== null) {
+      if (newFiber) {
         if (shouldTrackSideEffects) {
           if (newFiber.alternate !== null) {
             // The new fiber is a work in progress, but if there exists a
@@ -1005,7 +981,7 @@ function ChildReconciler(shouldTrackSideEffects) {
         // unfortunate because it triggers the slow path all the time. We need
         // a better way to communicate whether this was a miss or null,
         // boolean, undefined, etc.
-        if (oldFiber === null) {
+        if (!oldFiber) {
           oldFiber = nextOldFiber;
         }
         break;
@@ -1144,11 +1120,7 @@ function ChildReconciler(shouldTrackSideEffects) {
         if (
           child.tag === Fragment
             ? element.type === REACT_FRAGMENT_TYPE
-            : child.elementType === element.type ||
-              // Keep this check inline so it only runs on the false path:
-              (__DEV__
-                ? isCompatibleFamilyForHotReloading(child, element)
-                : false)
+            : child.elementType === element.type
         ) {
           deleteRemainingChildren(returnFiber, child.sibling);
           const existing = useFiber(
@@ -1402,16 +1374,4 @@ export function cloneChildFibers(
     newChild.return = workInProgress;
   }
   newChild.sibling = null;
-}
-
-// Reset a workInProgress child set to prepare it for a second pass.
-export function resetChildFibers(
-  workInProgress: Fiber,
-  renderExpirationTime: ExpirationTime,
-): void {
-  let child = workInProgress.child;
-  while (child !== null) {
-    resetWorkInProgress(child, renderExpirationTime);
-    child = child.sibling;
-  }
 }

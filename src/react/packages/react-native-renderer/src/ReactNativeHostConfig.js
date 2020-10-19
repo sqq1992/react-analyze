@@ -7,25 +7,15 @@
  * @flow
  */
 
-import type {
-  ReactNativeBaseComponentViewConfig,
-  ReactNativeResponderEvent,
-  ReactNativeResponderContext,
-} from './ReactNativeTypes';
-import type {
-  ReactEventResponder,
-  ReactEventResponderInstance,
-} from 'shared/ReactTypes';
+import type {ReactNativeBaseComponentViewConfig} from './ReactNativeTypes';
 
 import invariant from 'shared/invariant';
 
 // Modules provided by RN:
-import {
-  ReactNativeViewConfigRegistry,
-  UIManager,
-  deepFreezeAndThrowOnMutationInDev,
-} from 'react-native/Libraries/ReactPrivate/ReactNativePrivateInterface';
+import UIManager from 'UIManager';
+import deepFreezeAndThrowOnMutationInDev from 'deepFreezeAndThrowOnMutationInDev';
 
+import {get as getViewConfigForType} from 'ReactNativeViewConfigRegistry';
 import {create, diff} from './ReactNativeAttributePayload';
 import {
   precacheFiberNode,
@@ -33,18 +23,12 @@ import {
   updateFiberProps,
 } from './ReactNativeComponentTree';
 import ReactNativeFiberHostComponent from './ReactNativeFiberHostComponent';
-
-const {get: getViewConfigForType} = ReactNativeViewConfigRegistry;
-
-type ReactNativeEventResponderInstance = ReactEventResponderInstance<
-  ReactNativeResponderEvent,
-  ReactNativeResponderContext,
->;
-
-type ReactNativeEventResponder = ReactEventResponder<
-  ReactNativeResponderEvent,
-  ReactNativeResponderContext,
->;
+import {
+  now as ReactNativeFrameSchedulingNow,
+  cancelDeferredCallback as ReactNativeFrameSchedulingCancelDeferredCallback,
+  scheduleDeferredCallback as ReactNativeFrameSchedulingScheduleDeferredCallback,
+  shouldYield as ReactNativeFrameSchedulingShouldYield,
+} from './ReactNativeFrameScheduling';
 
 export type Type = string;
 export type Props = Object;
@@ -122,6 +106,11 @@ export function createInstance(
       }
     }
   }
+
+  invariant(
+    type !== 'RCTView' || !hostContext.isInAParentText,
+    'Nesting of <View> within <Text> is not currently supported.',
+  );
 
   const updatePayload = create(props, viewConfig.validAttributes);
 
@@ -245,8 +234,11 @@ export function resetAfterCommit(containerInfo: Container): void {
   // Noop
 }
 
+export const now = ReactNativeFrameSchedulingNow;
 export const isPrimaryRenderer = true;
-export const warnsIfNotActing = true;
+export const scheduleDeferredCallback = ReactNativeFrameSchedulingScheduleDeferredCallback;
+export const cancelDeferredCallback = ReactNativeFrameSchedulingCancelDeferredCallback;
+export const shouldYield = ReactNativeFrameSchedulingShouldYield;
 
 export const scheduleTimeout = setTimeout;
 export const cancelTimeout = clearTimeout;
@@ -492,41 +484,5 @@ export function unhideTextInstance(
   textInstance: TextInstance,
   text: string,
 ): void {
-  throw new Error('Not yet implemented.');
-}
-
-export function mountResponderInstance(
-  responder: ReactNativeEventResponder,
-  responderInstance: ReactNativeEventResponderInstance,
-  props: Object,
-  state: Object,
-  instance: Instance,
-) {
-  throw new Error('Not yet implemented.');
-}
-
-export function unmountResponderInstance(
-  responderInstance: ReactNativeEventResponderInstance,
-): void {
-  throw new Error('Not yet implemented.');
-}
-
-export function getFundamentalComponentInstance(fundamentalInstance) {
-  throw new Error('Not yet implemented.');
-}
-
-export function mountFundamentalComponent(fundamentalInstance) {
-  throw new Error('Not yet implemented.');
-}
-
-export function shouldUpdateFundamentalComponent(fundamentalInstance) {
-  throw new Error('Not yet implemented.');
-}
-
-export function updateFundamentalComponent(fundamentalInstance) {
-  throw new Error('Not yet implemented.');
-}
-
-export function unmountFundamentalComponent(fundamentalInstance) {
   throw new Error('Not yet implemented.');
 }

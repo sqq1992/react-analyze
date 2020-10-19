@@ -149,14 +149,7 @@ export default {
               paths += countPathsFromStart(prevSegment);
             }
           }
-
-          // If our segment is reachable then there should be at least one path
-          // to it from the start of our code path.
-          if (segment.reachable && paths === 0) {
-            cache.delete(segment.id);
-          } else {
-            cache.set(segment.id, paths);
-          }
+          cache.set(segment.id, paths);
 
           return paths;
         }
@@ -293,7 +286,7 @@ export default {
         // hook functions.
         const codePathFunctionName = getFunctionName(codePathNode);
 
-        // This is a valid code path for React hooks if we are directly in a React
+        // This is a valid code path for React hooks if we are direcly in a React
         // function component or we are in a hook function.
         const isSomewhereInsideComponentOrHook = isInsideComponentOrHook(
           codePathNode,
@@ -381,14 +374,13 @@ export default {
           for (const hook of reactHooks) {
             // Report an error if a hook may be called more then once.
             if (cycled) {
-              context.report({
-                node: hook,
-                message:
-                  `React Hook "${context.getSource(hook)}" may be executed ` +
+              context.report(
+                hook,
+                `React Hook "${context.getSource(hook)}" may be executed ` +
                   'more than once. Possibly because it is called in a loop. ' +
                   'React Hooks must be called in the exact same order in ' +
                   'every component render.',
-              });
+              );
             }
 
             // If this is not a valid code path for React hooks then we need to
@@ -402,15 +394,16 @@ export default {
               //
               // Special case when we think there might be an early return.
               if (!cycled && pathsFromStartToEnd !== allPathsFromStartToEnd) {
-                const message =
+                context.report(
+                  hook,
                   `React Hook "${context.getSource(hook)}" is called ` +
-                  'conditionally. React Hooks must be called in the exact ' +
-                  'same order in every component render.' +
-                  (possiblyHasEarlyReturn
-                    ? ' Did you accidentally call a React Hook after an' +
-                      ' early return?'
-                    : '');
-                context.report({node: hook, message});
+                    'conditionally. React Hooks must be called in the exact ' +
+                    'same order in every component render.' +
+                    (possiblyHasEarlyReturn
+                      ? ' Did you accidentally call a React Hook after an' +
+                        ' early return?'
+                      : ''),
+                );
               }
             } else if (
               codePathNode.parent &&
@@ -422,22 +415,20 @@ export default {
               // false positives due to feature flag checks. We're less
               // sensitive to them in classes because hooks would produce
               // runtime errors in classes anyway, and because a use*()
-              // call in a class, if it works, is unambiguously *not* a hook.
+              // call in a class, if it works, is unambigously *not* a hook.
             } else if (codePathFunctionName) {
               // Custom message if we found an invalid function name.
-              const message =
+              context.report(
+                hook,
                 `React Hook "${context.getSource(hook)}" is called in ` +
-                `function "${context.getSource(codePathFunctionName)}" ` +
-                'which is neither a React function component or a custom ' +
-                'React Hook function.';
-              context.report({node: hook, message});
+                  `function "${context.getSource(codePathFunctionName)}" ` +
+                  'which is neither a React function component or a custom ' +
+                  'React Hook function.',
+              );
             } else if (codePathNode.type === 'Program') {
-              // These are dangerous if you have inline requires enabled.
-              const message =
-                `React Hook "${context.getSource(hook)}" cannot be called ` +
-                'at the top level. React Hooks must be called in a ' +
-                'React function component or a custom React Hook function.';
-              context.report({node: hook, message});
+              // For now, ignore if it's in top level scope.
+              // We could warn here but there are false positives related
+              // configuring libraries like `history`.
             } else {
               // Assume in all other cases the user called a hook in some
               // random function callback. This should usually be true for
@@ -445,11 +436,12 @@ export default {
               // enough in the common case that the incorrect message in
               // uncommon cases doesn't matter.
               if (isSomewhereInsideComponentOrHook) {
-                const message =
+                context.report(
+                  hook,
                   `React Hook "${context.getSource(hook)}" cannot be called ` +
-                  'inside a callback. React Hooks must be called in a ' +
-                  'React function component or a custom React Hook function.';
-                context.report({node: hook, message});
+                    'inside a callback. React Hooks must be called in a ' +
+                    'React function component or a custom React Hook function.',
+                );
               }
             }
           }
@@ -479,7 +471,7 @@ export default {
 };
 
 /**
- * Gets the static name of a function AST node. For function declarations it is
+ * Gets tbe static name of a function AST node. For function declarations it is
  * easy. For anonymous function expressions it is much harder. If you search for
  * `IsAnonymousFunctionDefinition()` in the ECMAScript spec you'll find places
  * where JS gives anonymous function expressions names. We roughly detect the
