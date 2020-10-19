@@ -8,7 +8,7 @@
 import {
   registrationNameModules,
   possibleRegistrationNames,
-} from 'events/EventPluginRegistry';
+} from 'alias-events/EventPluginRegistry';
 import warning from 'shared/warning';
 
 import {

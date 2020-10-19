@@ -7,12 +7,12 @@
  * @flow
  */
 
-import type {AnyNativeEvent} from 'events/PluginModuleType';
+import type {AnyNativeEvent} from 'alias-events/PluginModuleType';
 import type {Fiber} from 'react-reconciler/src/ReactFiber';
-import type {DOMTopLevelEventType} from 'events/TopLevelEventTypes';
+import type {DOMTopLevelEventType} from 'alias-events/TopLevelEventTypes';
 
-import {batchedUpdates, interactiveUpdates} from 'events/ReactGenericBatching';
-import {runExtractedEventsInBatch} from 'events/EventPluginHub';
+import {batchedUpdates, interactiveUpdates} from 'alias-events/ReactGenericBatching';
+import {runExtractedEventsInBatch} from 'alias-events/EventPluginHub';
 import {isFiberMounted} from 'react-reconciler/reflection';
 import {HostRoot} from 'shared/ReactWorkTags';
 

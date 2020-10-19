@@ -14,10 +14,10 @@ import {
   getInstanceFromNode,
   getNodeFromInstance,
 } from './ReactNativeComponentTree';
-import {setComponentTree} from 'events/EventPluginUtils';
+import {setComponentTree} from 'alias-events/EventPluginUtils';
 import {receiveEvent, receiveTouches} from './ReactNativeEventEmitter';
 import ReactNativeGlobalResponderHandler from './ReactNativeGlobalResponderHandler';
-import ResponderEventPlugin from 'events/ResponderEventPlugin';
+import ResponderEventPlugin from 'alias-events/ResponderEventPlugin';
 
 // Module provided by RN:
 import RCTEventEmitter from 'RCTEventEmitter';

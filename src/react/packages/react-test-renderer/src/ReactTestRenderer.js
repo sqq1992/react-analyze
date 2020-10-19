@@ -18,7 +18,7 @@ import {
   flushSync,
   injectIntoDevTools,
 } from 'react-reconciler/inline.test';
-import {batchedUpdates} from 'events/ReactGenericBatching';
+import {batchedUpdates} from 'alias-events/ReactGenericBatching';
 import {findCurrentFiberUsingSlowPath} from 'react-reconciler/reflection';
 import {
   Fragment,

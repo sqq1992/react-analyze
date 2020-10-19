@@ -16,8 +16,8 @@
 // Module provided by RN:
 import 'InitializeCore';
 
-import {injection as EventPluginHubInjection} from 'events/EventPluginHub';
-import ResponderEventPlugin from 'events/ResponderEventPlugin';
+import {injection as EventPluginHubInjection} from 'alias-events/EventPluginHub';
+import ResponderEventPlugin from 'alias-events/ResponderEventPlugin';
 
 import ReactNativeBridgeEventPlugin from './ReactNativeBridgeEventPlugin';
 import ReactNativeEventPluginOrder from './ReactNativeEventPluginOrder';

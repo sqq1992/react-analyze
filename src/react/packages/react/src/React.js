@@ -94,7 +94,7 @@ if (enableStableConcurrentModeAPIs) {
   React.unstable_Profiler = undefined;
 }
 
-if (enableHooks) {
+// if (enableHooks) {
   React.useCallback = useCallback;
   React.useContext = useContext;
   React.useEffect = useEffect;
@@ -104,6 +104,6 @@ if (enableHooks) {
   React.useReducer = useReducer;
   React.useRef = useRef;
   React.useState = useState;
-}
+// }
 
 export default React;

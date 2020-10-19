@@ -29,7 +29,7 @@ import {createPortal} from 'shared/ReactPortal';
 import {
   setBatchingImplementation,
   batchedUpdates,
-} from 'events/ReactGenericBatching';
+} from 'alias-events/ReactGenericBatching';
 import ReactVersion from 'shared/ReactVersion';
 // Module provided by RN:
 import UIManager from 'UIManager';

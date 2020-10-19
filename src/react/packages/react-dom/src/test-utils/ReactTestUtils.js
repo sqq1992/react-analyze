@@ -15,7 +15,7 @@ import {
   HostComponent,
   HostText,
 } from 'shared/ReactWorkTags';
-import SyntheticEvent from 'events/SyntheticEvent';
+import SyntheticEvent from 'alias-events/SyntheticEvent';
 import invariant from 'shared/invariant';
 import lowPriorityWarning from 'shared/lowPriorityWarning';
 import {ELEMENT_NODE} from '../shared/HTMLNodeType';
