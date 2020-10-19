@@ -386,6 +386,8 @@ export function scheduleUpdateOnFiber(
   fiber: Fiber,
   expirationTime: ExpirationTime,
 ) {
+
+  //todo checkForNestedUpdates 和 warnAboutInvalidUpdatesOnClassComponentsInDEV不重要, 忽略
   checkForNestedUpdates();
   warnAboutInvalidUpdatesOnClassComponentsInDEV(fiber);
 
