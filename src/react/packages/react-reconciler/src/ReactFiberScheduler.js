@@ -1702,13 +1702,6 @@ function retryTimedOutBoundary(boundaryFiber: Fiber, thenable: Thenable) {
 function scheduleWorkToRoot(fiber: Fiber, expirationTime): FiberRoot | null {
   recordScheduleUpdate();
 
-  if (__DEV__) {
-    if (fiber.tag === ClassComponent) {
-      const instance = fiber.stateNode;
-      warnAboutInvalidUpdates(instance);
-    }
-  }
-
   // Update the source fiber's expiration time
   if (fiber.expirationTime < expirationTime) {
     fiber.expirationTime = expirationTime;
@@ -1788,19 +1781,6 @@ function scheduleWorkToRoot(fiber: Fiber, expirationTime): FiberRoot | null {
 function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
   const root = scheduleWorkToRoot(fiber, expirationTime);
   if (root === null) {
-    if (__DEV__) {
-      switch (fiber.tag) {
-        case ClassComponent:
-          warnAboutUpdateOnUnmounted(fiber, true);
-          break;
-        case FunctionComponent:
-        case ForwardRef:
-        case MemoComponent:
-        case SimpleMemoComponent:
-          warnAboutUpdateOnUnmounted(fiber, false);
-          break;
-      }
-    }
     return;
   }
 

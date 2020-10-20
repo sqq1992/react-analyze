@@ -520,17 +520,7 @@ function legacyCreateRootFromDOMContainer(
       container.removeChild(rootSibling);
     }
   }
-  if (__DEV__) {
-    if (shouldHydrate && !forceHydrate && !warnedAboutHydrateAPI) {
-      warnedAboutHydrateAPI = true;
-      lowPriorityWarning(
-        false,
-        'render(): Calling ReactDOM.render() to hydrate server-rendered markup ' +
-          'will stop working in React v17. Replace the ReactDOM.render() call ' +
-          'with ReactDOM.hydrate() if you want React to attach to the server HTML.',
-      );
-    }
-  }
+
   // Legacy roots are not async by default.
   const isConcurrent = false;
   return new ReactRoot(container, isConcurrent, shouldHydrate);
@@ -543,15 +533,6 @@ function legacyRenderSubtreeIntoContainer(
   forceHydrate: boolean,
   callback: ?Function,
 ) {
-  // TODO: Ensure all entry points contain this check
-  invariant(
-    isValidContainer(container),
-    'Target container is not a DOM element.',
-  );
-
-  if (__DEV__) {
-    topLevelUpdateWarnings(container);
-  }
 
   // TODO: Without `any` type, Flow says "Property cannot be accessed on any
   // member of intersection type." Whyyyyyy.
