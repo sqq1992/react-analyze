@@ -333,6 +333,8 @@ function unstable_scheduleCallback(callback, deprecated_options) {
   } else {
     var next = null;
     var node = firstCallbackNode;
+
+    //todo 找出任务优先级最高的调度
     do {
       if (node.expirationTime > expirationTime) {
         // The new callback expires before this one.
@@ -342,11 +344,11 @@ function unstable_scheduleCallback(callback, deprecated_options) {
       node = node.next;
     } while (node !== firstCallbackNode);
 
-    if (next === null) {
+    if (next === null) {   //todo 没有找到之前的任务调度比现在高的
       // No callback with a later expiration was found, which means the new
       // callback has the latest expiration in the list.
       next = firstCallbackNode;
-    } else if (next === firstCallbackNode) {
+    } else if (next === firstCallbackNode) {  //todo 当前新增的任务优先级更高
       // The new callback has the earliest expiration in the entire list.
       firstCallbackNode = newNode;
       ensureHostCallbackIsScheduled();

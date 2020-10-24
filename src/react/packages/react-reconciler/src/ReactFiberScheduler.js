@@ -377,11 +377,6 @@ function resetStack() {
     }
   }
 
-  if (__DEV__) {
-    ReactStrictModeWarnings.discardPendingWarnings();
-    checkThatStackIsEmpty();
-  }
-
   nextRoot = null;
   nextRenderExpirationTime = NoWork;
   nextLatestAbsoluteTimeoutMs = -1;
@@ -1699,6 +1694,12 @@ function retryTimedOutBoundary(boundaryFiber: Fiber, thenable: Thenable) {
   }
 }
 
+/**
+ * 通过当前fiber节点去找FiberRoot节点, 并且设置expirationTime
+ * @param fiber
+ * @param expirationTime
+ * @returns {null}
+ */
 function scheduleWorkToRoot(fiber: Fiber, expirationTime): FiberRoot | null {
   recordScheduleUpdate();
 
@@ -1713,7 +1714,7 @@ function scheduleWorkToRoot(fiber: Fiber, expirationTime): FiberRoot | null {
   // Walk the parent path to the root and update the child expiration time.
   let node = fiber.return;
   let root = null;
-  if (node === null && fiber.tag === HostRoot) {
+  if (node === null && fiber.tag === HostRoot) {  //找到根Fiber
     root = fiber.stateNode;
   } else {
     while (node !== null) {

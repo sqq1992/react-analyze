@@ -10,9 +10,11 @@ import ForwardRefDemo from './demos/forward-ref'
 import ChildrenDemo from './demos/children'
 import MemoDemo from './demos/memo'
 import PortalDemo from './demos/portal'
+import BatchUpdate from "./demos/funs/BatchUpdate";
 
 export default (
   <>
+    <Route path="/batchUpdate" component={BatchUpdate} />
     <Route path="/ref" component={RefDeom} />
     <Route path="/forward-ref" component={ForwardRefDemo} />
     <Route path="/context" component={ContextDemo} />

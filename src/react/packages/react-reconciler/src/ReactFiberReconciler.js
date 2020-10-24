@@ -168,18 +168,6 @@ export function updateContainerAtExpirationTime(
   // TODO: If this is a nested container, this won't be the root.
   const current = container.current;
 
-  if (__DEV__) {
-    if (ReactFiberInstrumentation.debugTool) {
-      if (current.alternate === null) {
-        ReactFiberInstrumentation.debugTool.onMountContainer(container);
-      } else if (element === null) {
-        ReactFiberInstrumentation.debugTool.onUnmountContainer(container);
-      } else {
-        ReactFiberInstrumentation.debugTool.onUpdateContainer(container);
-      }
-    }
-  }
-
   const context = getContextForSubtree(parentComponent);
   if (container.context === null) {
     container.context = context;

@@ -37,6 +37,11 @@ function computeExpirationBucket(
   expirationInMs,
   bucketSizeMs,
 ): ExpirationTime {
+
+  //todo ceiling 就等于
+  // let testTime = ((((currentTime - 2 + 5000 / 10) / 25) | 0) + 1) * 25
+  // let formatTestTime = ((((currentTime + 498) / 25) | 0) + 1) * 25;
+
   return (
     MAGIC_NUMBER_OFFSET -
     ceiling(

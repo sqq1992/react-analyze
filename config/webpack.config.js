@@ -302,6 +302,7 @@ module.exports = function(webpackEnv) {
         'alias-events': path.resolve(__dirname, '../src/react/packages/alias-events'),
         'shared': path.resolve(__dirname, '../src/react/packages/shared'),
         'react-reconciler': path.resolve(__dirname, '../src/react/packages/react-reconciler'),
+        'scheduler': path.resolve(__dirname, '../src/react/packages/scheduler'),
       },
       plugins: [
         // Adds support for installing with Plug'n'Play, leading to faster installs and adding
