@@ -563,7 +563,7 @@ if (globalValue && globalValue._schedMock) {
   // will adjust this value to a faster fps if we get more frequent animation
   // frames.
   var previousFrameTime = 33;
-  var activeFrameTime = 33;
+  var activeFrameTime = 33;  //todo 浏览器执行1针的所需时间
 
   shouldYieldToHost = function() {
     return frameDeadline <= getCurrentTime();
@@ -583,7 +583,7 @@ if (globalValue && globalValue._schedMock) {
     var currentTime = getCurrentTime();
 
     var didTimeout = false;
-    if (frameDeadline - currentTime <= 0) {
+    if (frameDeadline - currentTime <= 0) {   //todo 浏览器更新react针的时间, 花费超过了33毫秒
       // There's no time left in this idle period. Check if the callback has
       // a timeout and whether it's been exceeded.
       if (prevTimeoutTime !== -1 && prevTimeoutTime <= currentTime) {
@@ -631,7 +631,7 @@ if (globalValue && globalValue._schedMock) {
       return;
     }
 
-    var nextFrameTime = rafTime - frameDeadline + activeFrameTime;
+    var nextFrameTime = rafTime - frameDeadline + activeFrameTime;  //下一针的时间
     if (
       nextFrameTime < activeFrameTime &&
       previousFrameTime < activeFrameTime
@@ -654,6 +654,8 @@ if (globalValue && globalValue._schedMock) {
       previousFrameTime = nextFrameTime;
     }
     frameDeadline = rafTime + activeFrameTime;
+
+    //todo 将执行react的任务插入到队列中去, 等等浏览器执行完动画, 然后在执行动画
     if (!isMessageEventScheduled) {
       isMessageEventScheduled = true;
       port.postMessage(undefined);
