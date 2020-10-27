@@ -191,9 +191,12 @@ export function createUpdate(expirationTime: ExpirationTime): Update<*> {
     expirationTime: expirationTime,
 
     tag: UpdateState,
+
+    // setState 的第一二个参数
     payload: null,
     callback: null,
 
+    // 用于在队列中找到下一个节点
     next: null,
     nextEffect: null,
   };

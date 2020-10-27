@@ -80,6 +80,8 @@ if (__DEV__) {
   }
 }
 
+//Fiber对应一个即将update或已经update的组件，
+// 一个组件可以有一个或多个Fiber
 // A Fiber is work on a Component that needs to be done or was done. There can
 // be more than one per component.
 export type Fiber = {|
@@ -93,20 +95,25 @@ export type Fiber = {|
   // alternate versions of the tree. We put this on a single object for now to
   // minimize the number of objects created during the initial render.
 
-  // Tag identifying the type of fiber.
+  //标记不同的组件类型
+  //有原生的DOM节点，有React自己的节点
   tag: WorkTag,
 
-  // Unique identifier of this child.
+  //ReactElement里面的key
   key: null | string,
 
   // The value of element.type which is used to preserve the identity during
   // reconciliation of this child.
+  //ReactElement.type，也就是我们调用createElement的第一个参数
   elementType: any,
 
   // The resolved function/class/ associated with this fiber.
+  //异步组件resolve之后返回的内容，一般是function或class
+  //比如懒加载
   type: any,
 
   // The local state associated with this fiber.
+  //state更新了或props更新了均会更新到stateNode上
   stateNode: any,
 
   // Conceptual aliases
@@ -119,25 +126,35 @@ export type Fiber = {|
   // This is effectively the parent, but there can be multiple parents (two)
   // so this is only the parent of the thing we're currently processing.
   // It is conceptually the same as the return address of a stack frame.
+  //指向该对象在Fiber节点树中的`parent`，用来在处理完该节点后返回
+  //即流程图上的红线
   return: Fiber | null,
 
   // Singly Linked List Tree Structure.
+  //指向自己的第一个子节点
   child: Fiber | null,
+  //指向自己的兄弟结构
+  //兄弟节点的return指向同一个父节点
   sibling: Fiber | null,
   index: number,
 
   // The ref last used to attach this node.
   // I'll avoid adding an owner field for prod and model that as functions.
+  //ref属性
   ref: null | (((handle: mixed) => void) & {_stringRef: ?string}) | RefObject,
 
   // Input is the data coming into process this fiber. Arguments. Props.
+  //新的变动带来的新的props，即nextProps
   pendingProps: any, // This type will be more specific once we overload the tag.
+  //上一次渲染完成后的props,即 props
   memoizedProps: any, // The props used to create the output.
 
   // A queue of state updates and callbacks.
+  //该Fiber对应的组件，所产生的update，都会放在该队列中
   updateQueue: UpdateQueue<any> | null,
 
   // The state used to create the output
+  //新的state由updateQueue计算得出，并覆盖memoizedState
   memoizedState: any,
 
   // A linked-list of contexts that this fiber depends on

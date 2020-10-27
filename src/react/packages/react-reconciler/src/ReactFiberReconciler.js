@@ -135,6 +135,7 @@ function scheduleRootUpdate(
     }
   }
 
+  // 创建一个 update，就是内部有几个属性的对象
   const update = createUpdate(expirationTime);
   // Caution: React DevTools currently depends on this property
   // being called "element".
@@ -152,6 +153,7 @@ function scheduleRootUpdate(
   }
 
   flushPassiveEffects();
+  // 把 update 入队，内部就是一些创建或者获取 queue（链表结构），然后给链表添加一个节点的操作
   enqueueUpdate(current, update);
   scheduleWork(current, expirationTime);
 
@@ -273,8 +275,15 @@ export function updateContainer(
   parentComponent: ?React$Component<any, any>,
   callback: ?Function,
 ): ExpirationTime {
+  // todo 取出容器的 fiber 对象，也就是 fiber root
   const current = container.current;
+
+  // 计算时间
   const currentTime = requestCurrentTime();
+
+  //todo 过期时间
+  // expirationTime 代表优先级，数字越大优先级越高
+  // sync 的数字是最大的，所以优先级也是最高的
   const expirationTime = computeExpirationForFiber(currentTime, current);
   return updateContainerAtExpirationTime(
     element,

@@ -366,6 +366,7 @@ function ReactRoot(
   isConcurrent: boolean,
   hydrate: boolean,
 ) {
+  // todo 这个 root 指的是 FiberRoot
   const root = createContainer(container, isConcurrent, hydrate);
   this._internalRoot = root;
 }
@@ -373,15 +374,24 @@ ReactRoot.prototype.render = function(
   children: ReactNodeList,
   callback: ?() => mixed,
 ): Work {
+
+  // 这里指 FiberRoot
   const root = this._internalRoot;
+
+  // ReactWork 的功能就是为了在组件渲染或更新后把所有传入
+  // ReactDom.render 中的回调函数全部执行一遍
   const work = new ReactWork();
   callback = callback === undefined ? null : callback;
   if (__DEV__) {
     warnOnInvalidCallback(callback, 'render');
   }
+
+  // 如果有 callback，就 push 进 work 中的数组
   if (callback !== null) {
     work.then(callback);
   }
+
+  // todo work._onCommit 就是用于执行所有回调函数的
   updateContainer(children, root, null, work._onCommit);
   return work;
 };
@@ -534,11 +544,14 @@ function legacyRenderSubtreeIntoContainer(
   callback: ?Function,
 ) {
 
-  // TODO: Without `any` type, Flow says "Property cannot be accessed on any
-  // member of intersection type." Whyyyyyy.
+
+
+  // todo 一开始进来 container 上是肯定没有这个属性的
   let root: Root = (container._reactRootContainer: any);
+
   if (!root) {
-    // Initial mount
+
+    // todo 创建一个 root 出来，类型是 ReactRoot
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
       forceHydrate,
@@ -550,7 +563,14 @@ function legacyRenderSubtreeIntoContainer(
         originalCallback.call(instance);
       };
     }
-    // Initial mount should not be batched.
+
+    //todo 初次更新
+    // batchedUpdate 是 React 中很重要的一步，也就是批量更新
+    // this.setState({ age: 1 })
+    // this.setState({ age: 2 })
+    // this.setState({ age: 3 })
+    // 以上三次 setState 会被优化成一次更新，减少了渲染次数
+    // 但是对于 Root 来说没必要批量更新，直接调用回调函数
     unbatchedUpdates(() => {
       if (parentComponent != null) {
         root.legacy_renderSubtreeIntoContainer(
