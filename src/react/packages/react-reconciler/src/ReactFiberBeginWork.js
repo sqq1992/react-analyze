@@ -854,6 +854,7 @@ function updateHostComponent(current, workInProgress, renderExpirationTime) {
     return null;
   }
 
+  //todo 为当前的fiber创建子节点child
   reconcileChildren(
     current,
     workInProgress,
@@ -1670,6 +1671,7 @@ function bailoutOnAlreadyFinishedWork(
   }
 }
 
+//todo 递阶段, 深度优先遍历生成fiber的链表
 function beginWork(
   current: Fiber | null,
   workInProgress: Fiber,
@@ -1677,6 +1679,7 @@ function beginWork(
 ): Fiber | null {
   const updateExpirationTime = workInProgress.expirationTime;
 
+  // update时：如果current存在可能存在优化路径，可以复用current（即上一次更新的Fiber节点）
   if (current !== null) {
     const oldProps = current.memoizedProps;
     const newProps = workInProgress.pendingProps;
@@ -1761,6 +1764,8 @@ function beginWork(
           break;
         }
       }
+
+      // 复用current
       return bailoutOnAlreadyFinishedWork(
         current,
         workInProgress,
@@ -1772,6 +1777,7 @@ function beginWork(
   // Before entering the begin phase, clear the expiration time.
   workInProgress.expirationTime = NoWork;
 
+  // mount时：根据tag不同，创建不同的子Fiber节点
   switch (workInProgress.tag) {
     case IndeterminateComponent: {
       const elementType = workInProgress.elementType;
@@ -1878,20 +1884,7 @@ function beginWork(
       const unresolvedProps = workInProgress.pendingProps;
       // Resolve outer props first, then resolve inner props.
       let resolvedProps = resolveDefaultProps(type, unresolvedProps);
-      if (__DEV__) {
-        if (workInProgress.type !== workInProgress.elementType) {
-          const outerPropTypes = type.propTypes;
-          if (outerPropTypes) {
-            checkPropTypes(
-              outerPropTypes,
-              resolvedProps, // Resolved for outer only
-              'prop',
-              getComponentName(type),
-              getCurrentFiberStackInDev,
-            );
-          }
-        }
-      }
+
       resolvedProps = resolveDefaultProps(type.type, resolvedProps);
       return updateMemoComponent(
         current,

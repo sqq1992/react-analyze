@@ -112,6 +112,8 @@ export function createFiberRoot(
 ): FiberRoot {
   // Cyclic construction. This cheats the type system right now because
   // stateNode is any.
+
+  //todo 创建 fiber tree的根节点，即 rootFiber
   const uninitializedFiber = createHostRootFiber(isConcurrent);
 
   let root;

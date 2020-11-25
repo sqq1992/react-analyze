@@ -11,18 +11,20 @@ import ChildrenDemo from './demos/children'
 import MemoDemo from './demos/memo'
 import PortalDemo from './demos/portal'
 import BatchUpdate from "./demos/funs/BatchUpdate";
+import RenderIng from "./demos/renderIng/RenderIng";
 
 export default (
   <>
-    <Route path="/batchUpdate" component={BatchUpdate} />
-    <Route path="/ref" component={RefDeom} />
-    <Route path="/forward-ref" component={ForwardRefDemo} />
-    <Route path="/context" component={ContextDemo} />
-    <Route path="/concurrent" component={ConcurrentModeDemo} />
-    <Route path="/suspense" component={SuspenseDemo} />
-    <Route path="/hooks" component={HooksDemo} />
-    <Route path="/children" component={ChildrenDemo} />
-    <Route path="/memo" render={() => <MemoDemo />} />
-    <Route path="/portal" render={() => <PortalDemo />} />
+    <Route path="/renderIng" component={RenderIng} />
+    {/*<Route path="/batchUpdate" component={BatchUpdate} />*/}
+    {/*<Route path="/ref" component={RefDeom} />*/}
+    {/*<Route path="/forward-ref" component={ForwardRefDemo} />*/}
+    {/*<Route path="/context" component={ContextDemo} />*/}
+    {/*<Route path="/concurrent" component={ConcurrentModeDemo} />*/}
+    {/*<Route path="/suspense" component={SuspenseDemo} />*/}
+    {/*<Route path="/hooks" component={HooksDemo} />*/}
+    {/*<Route path="/children" component={ChildrenDemo} />*/}
+    {/*<Route path="/memo" render={() => <MemoDemo />} />*/}
+    {/*<Route path="/portal" render={() => <PortalDemo />} />*/}
   </>
 )
