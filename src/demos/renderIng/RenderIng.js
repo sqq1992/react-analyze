@@ -49,7 +49,7 @@ export default class RenderIng extends React.Component {
     return (
       <div>
         <header id="sb">
-          <button onClick={this.handleClick}>按钮num:{this.state.num}</button>
+          <button title={this.state.num} onClick={this.handleClick}>按钮num:{this.state.num}</button>
           <p>
             Edit <code>rendering</code> and save rendering
           </p>
