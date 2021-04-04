@@ -1,5 +1,8 @@
 
 
+#关于api文档
+https://react.jokcy.me/book/flow/scheduler-global.html
+
 #关于render流程
 1.关于render流程, 在'ReactDom.js'里的render方式, 使用'legacyRenderSubtreeIntoContainer'  (1)
 2.关于fiberRoot的建立, 在'ReactDom.js'里的render方式, 使用'legacyRenderSubtreeIntoContainer', 'FiberRootNode'

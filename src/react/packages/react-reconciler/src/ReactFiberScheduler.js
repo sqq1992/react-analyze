@@ -644,20 +644,16 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber): void {
   while (nextEffect !== null) {
     let didError = false;
     let error;
-    if (__DEV__) {
-      invokeGuardedCallback(null, commitBeforeMutationLifecycles, null);
-      if (hasCaughtError()) {
-        didError = true;
-        error = clearCaughtError();
-      }
-    } else {
-      try {
-        commitBeforeMutationLifecycles();
-      } catch (e) {
-        didError = true;
-        error = e;
-      }
+
+
+    try {
+      commitBeforeMutationLifecycles();
+    } catch (e) {
+      didError = true;
+      error = e;
     }
+
+
     if (didError) {
       invariant(
         nextEffect !== null,
@@ -687,20 +683,16 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber): void {
   while (nextEffect !== null) {
     let didError = false;
     let error;
-    if (__DEV__) {
-      invokeGuardedCallback(null, commitAllHostEffects, null);
-      if (hasCaughtError()) {
-        didError = true;
-        error = clearCaughtError();
-      }
-    } else {
-      try {
-        commitAllHostEffects();
-      } catch (e) {
-        didError = true;
-        error = e;
-      }
+
+
+    try {
+      commitAllHostEffects();
+    } catch (e) {
+      didError = true;
+      error = e;
     }
+
+
     if (didError) {
       invariant(
         nextEffect !== null,
@@ -733,26 +725,15 @@ function commitRoot(root: FiberRoot, finishedWork: Fiber): void {
   while (nextEffect !== null) {
     let didError = false;
     let error;
-    if (__DEV__) {
-      invokeGuardedCallback(
-        null,
-        commitAllLifeCycles,
-        null,
-        root,
-        committedExpirationTime,
-      );
-      if (hasCaughtError()) {
-        didError = true;
-        error = clearCaughtError();
-      }
-    } else {
-      try {
-        commitAllLifeCycles(root, committedExpirationTime);
-      } catch (e) {
-        didError = true;
-        error = e;
-      }
+
+
+    try {
+      commitAllLifeCycles(root, committedExpirationTime);
+    } catch (e) {
+      didError = true;
+      error = e;
     }
+
     if (didError) {
       invariant(
         nextEffect !== null,
@@ -991,6 +972,9 @@ function completeUnitOfWork(workInProgress: Fiber): Fiber | null {
         return nextUnitOfWork;
       }
 
+      /**
+       * 遍历effectList找到其对应的fiber节点, 然后执行操作
+       */
       if (
         returnFiber !== null &&
         // Do not append effects to parents if a sibling failed to complete
@@ -1401,7 +1385,8 @@ function renderRoot(root: FiberRoot, isYieldy: boolean): void {
     return;
   }
 
-  // We completed the whole tree.
+
+  // We completed the whole tree. //todo 已经完成链表的生成, 还未执行链表的操作
   const didCompleteRoot = true;
   stopWorkLoopTimer(interruptedBy, didCompleteRoot);
   const rootWorkInProgress = root.current.alternate;
@@ -1785,6 +1770,8 @@ function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
     return;
   }
 
+
+  // 有异步任务还没执行, 但新来的操作优先级比较高, 导致这个异步任务继续往后推!
   if (
     !isWorking &&
     nextRenderExpirationTime !== NoWork &&

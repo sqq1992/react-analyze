@@ -1105,6 +1105,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     return created;
   }
 
+  // todo 针对单节点的diff
   function reconcileSingleElement(
     returnFiber: Fiber,
     currentFirstChild: Fiber | null,
@@ -1215,6 +1216,7 @@ function ChildReconciler(shouldTrackSideEffects) {
   // This API will tag the children with the side-effect of the reconciliation
   // itself. They will be added to the side-effect list as we pass through the
   // children and the parent.
+  // todo 针对子节点进行diff
   function reconcileChildFibers(
     returnFiber: Fiber,
     currentFirstChild: Fiber | null,

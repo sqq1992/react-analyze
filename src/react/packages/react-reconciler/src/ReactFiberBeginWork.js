@@ -142,13 +142,15 @@ if (__DEV__) {
   didWarnAboutReassigningProps = false;
 }
 
+
+//todo 创建新的子fiber节点
 export function reconcileChildren(
   current: Fiber | null,
   workInProgress: Fiber,
   nextChildren: any,
   renderExpirationTime: ExpirationTime,
 ) {
-  if (current === null) {
+  if (current === null) { //对于mount的组件，他会创建新的子Fiber节点
     // If this is a fresh new component that hasn't been rendered yet, we
     // won't update its child set by applying minimal side-effects. Instead,
     // we will add them all to the child before it gets rendered. That means
@@ -159,7 +161,7 @@ export function reconcileChildren(
       nextChildren,
       renderExpirationTime,
     );
-  } else {
+  } else {  //对于update的组件，他会将当前组件与该组件在上次更新时对应的Fiber节点比较（也就是俗称的Diff算法），将比较的结果生成新Fiber节点
     // If the current child is the same as the work in progress, it means that
     // we haven't yet started any work on these children. Therefore, we use
     // the clone algorithm to create a copy of all the current children.
