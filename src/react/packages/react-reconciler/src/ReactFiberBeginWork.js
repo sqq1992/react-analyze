@@ -208,13 +208,15 @@ if (__DEV__) {
   didWarnAboutDefaultPropsOnFunctionComponent = {};
 }
 
+
+//todo 创建新的子fiber节点
 export function reconcileChildren(
   current: Fiber | null,
   workInProgress: Fiber,
   nextChildren: any,
   renderExpirationTime: ExpirationTime,
 ) {
-  if (current === null) {
+  if (current === null) { //对于mount的组件，他会创建新的子Fiber节点
     // If this is a fresh new component that hasn't been rendered yet, we
     // won't update its child set by applying minimal side-effects. Instead,
     // we will add them all to the child before it gets rendered. That means
@@ -225,7 +227,7 @@ export function reconcileChildren(
       nextChildren,
       renderExpirationTime,
     );
-  } else {
+  } else {  //对于update的组件，他会将当前组件与该组件在上次更新时对应的Fiber节点比较（也就是俗称的Diff算法），将比较的结果生成新Fiber节点
     // If the current child is the same as the work in progress, it means that
     // we haven't yet started any work on these children. Therefore, we use
     // the clone algorithm to create a copy of all the current children.
@@ -1019,6 +1021,7 @@ function updateHostComponent(current, workInProgress, renderExpirationTime) {
     return null;
   }
 
+  //todo 为当前的fiber创建子节点child
   reconcileChildren(
     current,
     workInProgress,
@@ -2793,6 +2796,7 @@ function remountFiber(
   }
 }
 
+//todo 递阶段, 深度优先遍历生成fiber的链表
 function beginWork(
   current: Fiber | null,
   workInProgress: Fiber,
@@ -2800,24 +2804,7 @@ function beginWork(
 ): Fiber | null {
   const updateExpirationTime = workInProgress.expirationTime;
 
-  if (__DEV__) {
-    if (workInProgress._debugNeedsRemount && current !== null) {
-      // This will restart the begin phase with a new fiber.
-      return remountFiber(
-        current,
-        workInProgress,
-        createFiberFromTypeAndProps(
-          workInProgress.type,
-          workInProgress.key,
-          workInProgress.pendingProps,
-          workInProgress._debugOwner || null,
-          workInProgress.mode,
-          workInProgress.expirationTime,
-        ),
-      );
-    }
-  }
-
+  // update时：如果current存在可能存在优化路径，可以复用current（即上一次更新的Fiber节点）
   if (current !== null) {
     const oldProps = current.memoizedProps;
     const newProps = workInProgress.pendingProps;

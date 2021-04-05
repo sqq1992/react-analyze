@@ -1853,23 +1853,16 @@ function commitRootImpl(root, renderPriorityLevel) {
     prepareForCommit(root.containerInfo);
     nextEffect = firstEffect;
     do {
-      if (__DEV__) {
-        invokeGuardedCallback(null, commitBeforeMutationEffects, null);
-        if (hasCaughtError()) {
-          invariant(nextEffect !== null, 'Should be working on an effect.');
-          const error = clearCaughtError();
-          captureCommitPhaseError(nextEffect, error);
-          nextEffect = nextEffect.nextEffect;
-        }
-      } else {
-        try {
-          commitBeforeMutationEffects();
-        } catch (error) {
-          invariant(nextEffect !== null, 'Should be working on an effect.');
-          captureCommitPhaseError(nextEffect, error);
-          nextEffect = nextEffect.nextEffect;
-        }
+
+      try {
+        //todo beforeMutation阶段要执行的操作
+        commitBeforeMutationEffects();
+      } catch (error) {
+        invariant(nextEffect !== null, 'Should be working on an effect.');
+        captureCommitPhaseError(nextEffect, error);
+        nextEffect = nextEffect.nextEffect;
       }
+
     } while (nextEffect !== null);
     stopCommitSnapshotEffectsTimer();
 
@@ -1883,29 +1876,15 @@ function commitRootImpl(root, renderPriorityLevel) {
     startCommitHostEffectsTimer();
     nextEffect = firstEffect;
     do {
-      if (__DEV__) {
-        invokeGuardedCallback(
-          null,
-          commitMutationEffects,
-          null,
-          root,
-          renderPriorityLevel,
-        );
-        if (hasCaughtError()) {
-          invariant(nextEffect !== null, 'Should be working on an effect.');
-          const error = clearCaughtError();
-          captureCommitPhaseError(nextEffect, error);
-          nextEffect = nextEffect.nextEffect;
-        }
-      } else {
-        try {
-          commitMutationEffects(root, renderPriorityLevel);
-        } catch (error) {
-          invariant(nextEffect !== null, 'Should be working on an effect.');
-          captureCommitPhaseError(nextEffect, error);
-          nextEffect = nextEffect.nextEffect;
-        }
+
+      try {
+        commitMutationEffects(root, renderPriorityLevel);
+      } catch (error) {
+        invariant(nextEffect !== null, 'Should be working on an effect.');
+        captureCommitPhaseError(nextEffect, error);
+        nextEffect = nextEffect.nextEffect;
       }
+
     } while (nextEffect !== null);
     stopCommitHostEffectsTimer();
     resetAfterCommit(root.containerInfo);
@@ -1922,29 +1901,15 @@ function commitRootImpl(root, renderPriorityLevel) {
     startCommitLifeCyclesTimer();
     nextEffect = firstEffect;
     do {
-      if (__DEV__) {
-        invokeGuardedCallback(
-          null,
-          commitLayoutEffects,
-          null,
-          root,
-          expirationTime,
-        );
-        if (hasCaughtError()) {
-          invariant(nextEffect !== null, 'Should be working on an effect.');
-          const error = clearCaughtError();
-          captureCommitPhaseError(nextEffect, error);
-          nextEffect = nextEffect.nextEffect;
-        }
-      } else {
-        try {
-          commitLayoutEffects(root, expirationTime);
-        } catch (error) {
-          invariant(nextEffect !== null, 'Should be working on an effect.');
-          captureCommitPhaseError(nextEffect, error);
-          nextEffect = nextEffect.nextEffect;
-        }
+
+      try {
+        commitLayoutEffects(root, expirationTime);
+      } catch (error) {
+        invariant(nextEffect !== null, 'Should be working on an effect.');
+        captureCommitPhaseError(nextEffect, error);
+        nextEffect = nextEffect.nextEffect;
       }
+
     } while (nextEffect !== null);
     stopCommitLifeCyclesTimer();
 

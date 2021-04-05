@@ -148,6 +148,7 @@ let updateHostText;
 if (supportsMutation) {
   // Mutation mode
 
+  //todo 递归生成真实的dom处理
   appendAllChildren = function(
     parent: Instance,
     workInProgress: Fiber,
@@ -629,6 +630,7 @@ function cutOffTailIfNeeded(
   }
 }
 
+//todo 归阶段,
 function completeWork(
   current: Fiber | null,
   workInProgress: Fiber,
