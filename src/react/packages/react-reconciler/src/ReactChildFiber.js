@@ -753,6 +753,15 @@ function ChildReconciler(shouldTrackSideEffects) {
     return knownKeys;
   }
 
+
+  /**
+   * 多节点对多节点的diff
+   * @param returnFiber
+   * @param currentFirstChild
+   * @param newChildren
+   * @param expirationTime
+   * @returns {Fiber}
+   */
   function reconcileChildrenArray(
     returnFiber: Fiber,
     currentFirstChild: Fiber | null,
@@ -778,15 +787,6 @@ function ChildReconciler(shouldTrackSideEffects) {
     // If you change this code, also update reconcileChildrenIterator() which
     // uses the same algorithm.
 
-    if (__DEV__) {
-      // First, validate keys.
-      let knownKeys = null;
-      for (let i = 0; i < newChildren.length; i++) {
-        const child = newChildren[i];
-        knownKeys = warnOnInvalidKey(child, knownKeys);
-      }
-    }
-
     let resultingFirstChild: Fiber | null = null;
     let previousNewFiber: Fiber | null = null;
 
@@ -794,6 +794,9 @@ function ChildReconciler(shouldTrackSideEffects) {
     let lastPlacedIndex = 0;
     let newIdx = 0;
     let nextOldFiber = null;
+
+
+    //todo 优先diff属性不同, key不同则跳槽循环
     for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
       if (oldFiber.index > newIdx) {
         nextOldFiber = oldFiber;
@@ -839,6 +842,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       oldFiber = nextOldFiber;
     }
 
+    // todo diff新和老, 都并列完, 则删除老fiber的所有指针
     if (newIdx === newChildren.length) {
       // We've reached the end of the new children. We can delete the rest.
       deleteRemainingChildren(returnFiber, oldFiber);
@@ -869,6 +873,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       return resultingFirstChild;
     }
 
+    //todo 处理节点位置变化
     // Add all children to a key map for quick lookups.
     const existingChildren = mapRemainingChildren(returnFiber, oldFiber);
 
@@ -1129,6 +1134,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     return created;
   }
 
+  // todo 针对单节点的diff
   function reconcileSingleElement(
     returnFiber: Fiber,
     currentFirstChild: Fiber | null,
@@ -1243,6 +1249,7 @@ function ChildReconciler(shouldTrackSideEffects) {
   // This API will tag the children with the side-effect of the reconciliation
   // itself. They will be added to the side-effect list as we pass through the
   // children and the parent.
+  // todo 针对子节点进行diff
   function reconcileChildFibers(
     returnFiber: Fiber,
     currentFirstChild: Fiber | null,

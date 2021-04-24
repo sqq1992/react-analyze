@@ -17,17 +17,19 @@ function App() {
     // },[num])
 
     const a = (
-        <div>
-            <p key="first">first</p>
+        <ul >
+            <p key="first" >first</p>
+            <h2 key="third">third</h2>
             <h1 key="second">second</h1>
-        </div>
+        </ul>
     )
 
     const b = (
-        <div>
+        <ul >
+            <div key="first" >first</div>
             <h1 key="second">second</h1>
-            <p key="first">first</p>
-        </div>
+            <h2 key="third">third</h2>
+        </ul>
     )
 
 
