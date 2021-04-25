@@ -32,6 +32,10 @@ function App() {
         </ul>
     )
 
+    const handleUpdateNum = () => {
+        updateNum(num + 1);
+    };
+
 
     return (
         <div className="App">
@@ -42,9 +46,7 @@ function App() {
                 <img
                     src="https://s5.mogucdn.com/mlcdn/55cf19/200825_6gdlkde9h6967i4gae8afa3k05lie_640x960.jpg_640x854.v1cAC.40.webp"
                     className="App-logo" alt="logo"/>
-                <p onClick={() => {
-                    updateNum(num + 1);
-                }}>
+                <p onClick={handleUpdateNum}>
                     Edit
                     <code>{num}</code>
                     and save to load

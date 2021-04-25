@@ -12,3 +12,9 @@
 
 #关于fiber的内容
 1.关于fiber, 在'ReactFiberWorkLoop'里的'markUpdateTimeFromFiberToRoot' 方法递归其fiber对象 (5)
+
+
+#关于状态更新流程
+1.触发ReactFiberHooks中的dispatchAction
+2.触发ReactFiberWorkLoop中的performConcurrentWorkOnRoot
+3.触发ReactFiberWorkLoop中的commitRoot
