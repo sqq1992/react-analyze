@@ -2,23 +2,41 @@
  * 必须要react和react-dom 16.7以上
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 
 export default () => {
-  const [name, setName] = useState('jokcy')
+  const [ number , setNumber ] = useState(0)
+  const DivDemo = useMemo(() => <div> hello , i am useMemo </div>,[])
+  const curRef  = useRef(null)
 
-  useEffect(() => {
-    console.log('component update')
 
-    return () => {
-      console.log('unbind')
-    }
-  }, [])
+  useEffect(()=>{
+    console.log(1)
+  },[ number ])
+  useEffect(()=>{
+    console.log(2)
+  },[])
+  useEffect(()=>{
+    console.log(3)
+  },[])
 
-  return (
-    <>
-      <p>My Name is: {name}</p>
-      <input type="text" value={name} onChange={e => setName(e.target.value)} />
-    </>
-  )
+
+  const handerClick = ()=>{
+    //    setNumber(1)
+    //    setNumber(2)
+    //    setNumber(3)
+    setNumber(state=>state+1)
+    // 获取上次 state = 1
+    setNumber(state=>state+1)
+    // 获取上次 state = 2
+    setNumber(state=>state+1)
+  }
+
+
+  return <div ref={ curRef } >
+    hello,world { number }
+    { DivDemo }
+    <button onClick={()=> handerClick() } >number++</button>
+  </div>
 }
+
