@@ -308,12 +308,14 @@ function dispatchUserBlockingUpdate(
   }
 }
 
+/* topLevelType - click事件 ｜ eventSystemFlags = 1 ｜ nativeEvent = 事件源对象  ｜ targetInst = 元素对应的fiber对象  */
 function dispatchEventForPluginEventSystem(
   topLevelType: DOMTopLevelEventType,
   eventSystemFlags: EventSystemFlags,
   nativeEvent: AnyNativeEvent,
   targetInst: null | Fiber,
 ): void {
+  /* 从React 事件池中取出一个，将 topLevelType ，targetInst 等属性赋予给事件  */
   const bookKeeping = getTopLevelCallbackBookKeeping(
     topLevelType,
     nativeEvent,
@@ -321,11 +323,11 @@ function dispatchEventForPluginEventSystem(
     eventSystemFlags,
   );
 
-  try {
+  try {  /* 执行批量更新 handleTopLevel 为事件处理的主要函数 */
     // Event queue being processed in the same cycle allows
     // `preventDefault`.
     batchedEventUpdates(handleTopLevel, bookKeeping);
-  } finally {
+  } finally {   /* 释放事件池 */
     releaseTopLevelCallbackBookKeeping(bookKeeping);
   }
 }

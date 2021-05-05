@@ -4,9 +4,17 @@ function App() {
 
     const [num, updateNum] = useState(0);
 
-    useEffect(()=>{
-        console.log('num', num);
-    },[num])
+    // useEffect(()=>{
+    //     console.log('mount1');
+    // },[])
+    //
+    // useEffect(()=>{
+    //     console.log('mount2');
+    // },[])
+    //
+    // useEffect(()=>{
+    //     console.log('mount3');
+    // },[])
 
     // useLayoutEffect(()=>{
     //
@@ -17,7 +25,7 @@ function App() {
     // },[num])
 
     const a = (
-        <ul >
+        <ul>
             <p key="first" >first</p>
             <h2 key="third">third</h2>
             <h1 key="second">second</h1>
@@ -25,15 +33,31 @@ function App() {
     )
 
     const b = (
-        <ul >
+        <ul>
             <div key="first" >first</div>
             <h1 key="second">second</h1>
             <h2 key="third">third</h2>
         </ul>
     )
 
-    const handleUpdateNum = () => {
-        updateNum(num + 1);
+    const handleUpdateNum = (e) => {
+
+        //todo 事件池
+        console.log(e.target) // button
+        setTimeout(()=>{
+            console.log(e.target) // null
+        },0)
+
+        // updateNum(num + 1);
+        // setTimeout(()=>{
+        //     updateNum(100);
+        // },5000)
+        // updateNum(state=>state+2);
+        // updateNum(state=>state+3);
+    };
+
+    const handleChangeInput = (value) => {
+        console.log('handleChangeInput', value);
     };
 
 
@@ -59,6 +83,7 @@ function App() {
                     Learn React
                 </a>
             </header>
+            <input  placeholder="请输入内容" onChange={ handleChangeInput }  />
         </div>
     );
 }

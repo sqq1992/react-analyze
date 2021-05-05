@@ -61,6 +61,8 @@ function recomputePluginOrdering(): void {
     const publishedEvents = pluginModule.eventTypes;
     for (const eventName in publishedEvents) {
       invariant(
+
+        // publishedEvents[eventName] -> eventConfig , pluginModule -> 事件插件 ， eventName -> 事件名称
         publishEventForPlugin(
           publishedEvents[eventName],
           pluginModule,
@@ -82,6 +84,12 @@ function recomputePluginOrdering(): void {
  * @return {boolean} True if the event was successfully published.
  * @private
  */
+
+/*
+  dispatchConfig -> 原生事件对应配置项 { phasedRegistrationNames :{  冒泡 捕获  } ，   }
+  pluginModule -> 事件插件 比如SimpleEventPlugin
+  eventName -> 原生事件名称。
+*/
 function publishEventForPlugin(
   dispatchConfig: DispatchConfig,
   pluginModule: PluginModule<AnyNativeEvent>,

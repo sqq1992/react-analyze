@@ -373,17 +373,6 @@ export function renderWithHooks(
   currentlyRenderingFiber = workInProgress;
   nextCurrentHook = current !== null ? current.memoizedState : null;
 
-  if (__DEV__) {
-    hookTypesDev =
-      current !== null
-        ? ((current._debugHookTypes: any): Array<HookType>)
-        : null;
-    hookTypesUpdateIndexDev = -1;
-    // Used for hot reloading:
-    ignorePreviousDependencies =
-      current !== null && current.type !== workInProgress.type;
-  }
-
   // The following should have already been reset
   // currentHook = null;
   // workInProgressHook = null;
@@ -403,25 +392,10 @@ export function renderWithHooks(
   // Using nextCurrentHook to differentiate between mount/update only works if at least one stateful hook is used.
   // Non-stateful hooks (e.g. context) don't get added to memoizedState,
   // so nextCurrentHook would be null during updates and mounts.
-  if (__DEV__) {
-    if (nextCurrentHook !== null) {
-      ReactCurrentDispatcher.current = HooksDispatcherOnUpdateInDEV;
-    } else if (hookTypesDev !== null) {
-      // This dispatcher handles an edge case where a component is updating,
-      // but no stateful hooks have been used.
-      // We want to match the production code behavior (which will use HooksDispatcherOnMount),
-      // but with the extra DEV validation to ensure hooks ordering hasn't changed.
-      // This dispatcher does that.
-      ReactCurrentDispatcher.current = HooksDispatcherOnMountWithHookTypesInDEV;
-    } else {
-      ReactCurrentDispatcher.current = HooksDispatcherOnMountInDEV;
-    }
-  } else {
-    ReactCurrentDispatcher.current =
+  ReactCurrentDispatcher.current =
       nextCurrentHook === null
-        ? HooksDispatcherOnMount
-        : HooksDispatcherOnUpdate;
-  }
+          ? HooksDispatcherOnMount
+          : HooksDispatcherOnUpdate;
 
   let children = Component(props, refOrContext);
 
@@ -585,14 +559,14 @@ function updateWorkInProgressHook(): Hook {
   // clone, or a work-in-progress hook from a previous render pass that we can
   // use as a base. When we reach the end of the base list, we must switch to
   // the dispatcher used for mounts.
-  if (nextWorkInProgressHook !== null) {
+  if (nextWorkInProgressHook !== null) { /* 如果 currentHook = null 证明它是第一个hooks */
     // There's already a work-in-progress. Reuse it.
     workInProgressHook = nextWorkInProgressHook;
     nextWorkInProgressHook = workInProgressHook.next;
 
     currentHook = nextCurrentHook;
     nextCurrentHook = currentHook !== null ? currentHook.next : null;
-  } else {
+  } else {  /* 不是第一个hooks，那么指向下一个 hooks */
     // Clone from the current hook.
     invariant(
       nextCurrentHook !== null,
@@ -814,18 +788,19 @@ function mountState<S>(
 ): [S, Dispatch<BasicStateAction<S>>] {
   const hook = mountWorkInProgressHook();
   if (typeof initialState === 'function') {
+    // 如果 useState 第一个参数为函数，执行函数得到state
     initialState = initialState();
   }
   hook.memoizedState = hook.baseState = initialState;
   const queue = (hook.queue = {
-    last: null,
-    dispatch: null,
-    lastRenderedReducer: basicStateReducer,
-    lastRenderedState: (initialState: any),
+    last: null,  // 带更新的
+    dispatch: null,  // 负责更新函数
+    lastRenderedReducer: basicStateReducer,  //用于得到最新的 state ,
+    lastRenderedState: (initialState: any),  // 最后一次得到的 state
   });
   const dispatch: Dispatch<
     BasicStateAction<S>,
-  > = (queue.dispatch = (dispatchAction.bind(
+  > = (queue.dispatch = (dispatchAction.bind(  // 负责更新的函数
     null,
     // Flow doesn't know this is non-null, but we do.
     ((currentlyRenderingFiber: any): Fiber),
@@ -913,20 +888,14 @@ function mountEffect(
   create: () => (() => void) | void,
   deps: Array<mixed> | void | null,
 ): void {
-  if (__DEV__) {
-    // $FlowExpectedError - jest isn't a global, and isn't recognized outside of tests
-    if ('undefined' !== typeof jest) {
-      warnIfNotCurrentlyActingEffectsInDEV(
-        ((currentlyRenderingFiber: any): Fiber),
-      );
-    }
-  }
+
   return mountEffectImpl(
     UpdateEffect | PassiveEffect,
     UnmountPassive | MountPassive,
     create,
     deps,
   );
+
 }
 
 function updateEffect(
@@ -1182,10 +1151,10 @@ function dispatchAction<S, A>(
 
     // Append the update to the end of the list.
     const last = queue.last;
-    if (last === null) {
+    if (last === null) {  // 证明第一次更新
       // This is the first update. Create a circular list.
       update.next = update;
-    } else {
+    } else {  // 不是第一次更新
       const first = last.next;
       if (first !== null) {
         // Still circular.
@@ -1204,11 +1173,7 @@ function dispatchAction<S, A>(
       // same as the current state, we may be able to bail out entirely.
       const lastRenderedReducer = queue.lastRenderedReducer;
       if (lastRenderedReducer !== null) {
-        let prevDispatcher;
-        if (__DEV__) {
-          prevDispatcher = ReactCurrentDispatcher.current;
-          ReactCurrentDispatcher.current = InvalidNestedHooksDispatcherOnUpdateInDEV;
-        }
+
         try {
           const currentState: S = (queue.lastRenderedState: any);
           const eagerState = lastRenderedReducer(currentState, action);
@@ -1228,9 +1193,7 @@ function dispatchAction<S, A>(
         } catch (error) {
           // Suppress the error. It will throw again in the render phase.
         } finally {
-          if (__DEV__) {
-            ReactCurrentDispatcher.current = prevDispatcher;
-          }
+
         }
       }
     }

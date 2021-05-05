@@ -34,6 +34,7 @@ setComponentTree(
  * Some important event plugins included by default (without having to require
  * them).
  */
+/* 注册事件插件 */
 EventPluginHubInjection.injectEventPluginsByName({
   SimpleEventPlugin: SimpleEventPlugin,
   EnterLeaveEventPlugin: EnterLeaveEventPlugin,

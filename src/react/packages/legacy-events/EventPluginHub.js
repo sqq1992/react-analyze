@@ -139,7 +139,7 @@ function extractPluginEvents(
 ): Array<ReactSyntheticEvent> | ReactSyntheticEvent | null {
   let events = null;
   for (let i = 0; i < plugins.length; i++) {
-    // Not every plugin in the ordering may be loaded at runtime.
+    /* 找到对应的事件插件，形成对应的合成event，形成事件执行队列  */
     const possiblePlugin: PluginModule<AnyNativeEvent> = plugins[i];
     if (possiblePlugin) {
       const extractedEvents = possiblePlugin.extractEvents(
@@ -171,5 +171,6 @@ export function runExtractedPluginEventsInBatch(
     nativeEvent,
     nativeEventTarget,
   );
+  /* 执行事件处理函数 */
   runEventsInBatch(events);
 }
