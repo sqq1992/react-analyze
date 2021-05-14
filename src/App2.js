@@ -1,6 +1,6 @@
 import React, {useEffect, useLayoutEffect, useState} from 'react'
 
-function App() {
+function App2() {
 
     const [num, updateNum] = useState(0);
 
@@ -15,7 +15,7 @@ function App() {
     // useEffect(()=>{
     //     console.log('mount3');
     // },[])
-
+    //
     // useLayoutEffect(()=>{
     //
     //     if(num===2){
@@ -26,27 +26,29 @@ function App() {
 
     const a = (
         <ul>
-            <p key="first" >first</p>
-            <h2 key="third">third</h2>
-            <h1 key="second">second</h1>
+            <li key="first" className="a">first</li>
+            <li key="third" className="cc">third</li>
+            <li key="second" className="b">second</li>
         </ul>
     )
 
     const b = (
         <ul>
-            <div key="first" >first</div>
-            <h1 key="second">second</h1>
-            <h2 key="third">third</h2>
+            <li key="first" className="aa">first</li>
+            <li key="second" className="bb">second</li>
+            <li key="third" className="cc">third</li>
         </ul>
     )
 
     const handleUpdateNum = (e) => {
 
+        updateNum(num + 1);
+
         //todo 事件池
-        console.log(e.target) // button
-        setTimeout(()=>{
-            console.log(e.target) // null
-        },0)
+        // console.log(e.target) // button
+        // setTimeout(()=>{
+        //     console.log(e.target) // null
+        // },0)
 
         // updateNum(num + 1);
         // setTimeout(()=>{
@@ -56,9 +58,9 @@ function App() {
         // updateNum(state=>state+3);
     };
 
-    const handleChangeInput = (value) => {
-        console.log('handleChangeInput', value);
-    };
+    // const handleChangeInput = (value) => {
+    //     console.log('handleChangeInput', value);
+    // };
 
 
     return (
@@ -83,9 +85,9 @@ function App() {
                     Learn React
                 </a>
             </header>
-            <input  placeholder="请输入内容" onChange={ handleChangeInput }  />
+            {/*<input  placeholder="请输入内容" onChange={ handleChangeInput }  />*/}
         </div>
     );
 }
 
-export default App
+export default App2

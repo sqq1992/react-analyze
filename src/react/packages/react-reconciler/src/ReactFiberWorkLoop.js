@@ -1764,7 +1764,10 @@ function commitRoot(root) {
 }
 
 function commitRootImpl(root, renderPriorityLevel) {
+
+  // 触发useEffect回调与其他同步任务。由于这些任务可能触发新的渲染，所以这里要一直遍历执行直到没有任务
   flushPassiveEffects();
+
   flushRenderPhaseStrictModeWarningsInDEV();
 
   invariant(
@@ -2065,15 +2068,18 @@ function commitBeforeMutationEffects() {
 
 function commitMutationEffects(root: FiberRoot, renderPriorityLevel) {
   // TODO: Should probably move the bulk of this function to commitWork.
+  // 遍历effectList
   while (nextEffect !== null) {
     setCurrentDebugFiberInDEV(nextEffect);
 
     const effectTag = nextEffect.effectTag;
 
+    // 根据 ContentReset effectTag重置文字节点
     if (effectTag & ContentReset) {
       commitResetTextContent(nextEffect);
     }
 
+    // 更新ref
     if (effectTag & Ref) {
       const current = nextEffect.alternate;
       if (current !== null) {
@@ -2085,9 +2091,11 @@ function commitMutationEffects(root: FiberRoot, renderPriorityLevel) {
     // updates, and deletions. To avoid needing to add a case for every possible
     // bitmap value, we remove the secondary effects from the effect tag and
     // switch on that value.
+    // 根据 effectTag 分别处理
     let primaryEffectTag =
       effectTag & (Placement | Update | Deletion | Hydrating);
     switch (primaryEffectTag) {
+        // 插入DOM
       case Placement: {
         commitPlacement(nextEffect);
         // Clear the "placement" from effect tag so that we know that this is
@@ -2097,14 +2105,17 @@ function commitMutationEffects(root: FiberRoot, renderPriorityLevel) {
         nextEffect.effectTag &= ~Placement;
         break;
       }
+        // 插入DOM 并 更新DOM
       case PlacementAndUpdate: {
         // Placement
+        // 插入
         commitPlacement(nextEffect);
         // Clear the "placement" from effect tag so that we know that this is
         // inserted, before any life-cycles like componentDidMount gets called.
         nextEffect.effectTag &= ~Placement;
 
         // Update
+        // 更新
         const current = nextEffect.alternate;
         commitWork(current, nextEffect);
         break;
@@ -2204,23 +2215,14 @@ function flushPassiveEffectsImpl() {
   // change in the future.
   let effect = root.current.firstEffect;
   while (effect !== null) {
-    if (__DEV__) {
-      setCurrentDebugFiberInDEV(effect);
-      invokeGuardedCallback(null, commitPassiveHookEffects, null, effect);
-      if (hasCaughtError()) {
-        invariant(effect !== null, 'Should be working on an effect.');
-        const error = clearCaughtError();
-        captureCommitPhaseError(effect, error);
-      }
-      resetCurrentDebugFiberInDEV();
-    } else {
-      try {
-        commitPassiveHookEffects(effect);
-      } catch (error) {
-        invariant(effect !== null, 'Should be working on an effect.');
-        captureCommitPhaseError(effect, error);
-      }
+
+    try {
+      commitPassiveHookEffects(effect);
+    } catch (error) {
+      invariant(effect !== null, 'Should be working on an effect.');
+      captureCommitPhaseError(effect, error);
     }
+
     const nextNextEffect = effect.nextEffect;
     // Remove nextEffect pointer to assist GC
     effect.nextEffect = null;

@@ -1172,10 +1172,14 @@ function ChildReconciler(shouldTrackSideEffects) {
           }
           return existing;
         } else {
+
+          // 代码执行到这里代表：key相同但是type不同
+          // 将该fiber及其兄弟fiber标记为删除
           deleteRemainingChildren(returnFiber, child);
           break;
         }
       } else {
+        // key不同，将该fiber标记为删除
         deleteChild(returnFiber, child);
       }
       child = child.sibling;
