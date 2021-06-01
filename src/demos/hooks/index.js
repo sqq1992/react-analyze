@@ -23,10 +23,16 @@ export default () => {
     console.log(3)
   },[])
 
+  const handleAddNumber = () => {
+    setNumber(number+1)
+    setNumber(number => number + 2);
+
+  };
+
   return <div ref={ curRef } >
     hello,world { number } {name}
     { DivDemo }
-    <button onClick={() => setNumber(number+1) } >number++</button>
+    <button onClick={handleAddNumber} >number++</button>
   </div>
 }
 

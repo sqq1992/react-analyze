@@ -1882,6 +1882,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     do {
 
       try {
+        //todo mutation阶段要执行的操作
         commitMutationEffects(root, renderPriorityLevel);
       } catch (error) {
         invariant(nextEffect !== null, 'Should be working on an effect.');
@@ -1907,6 +1908,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     do {
 
       try {
+        //todo layout阶段要执行的操作
         commitLayoutEffects(root, expirationTime);
       } catch (error) {
         invariant(nextEffect !== null, 'Should be working on an effect.');

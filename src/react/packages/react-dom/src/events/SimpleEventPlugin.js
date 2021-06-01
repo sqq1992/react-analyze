@@ -355,13 +355,14 @@ const SimpleEventPlugin: PluginModule<MouseEvent> & {
         EventConstructor = SyntheticEvent;
         break;
     }
+
     const event = EventConstructor.getPooled(
       dispatchConfig,
-      targetInst,
-      nativeEvent,
-      nativeEventTarget,
+      targetInst, // 组件实例
+      nativeEvent, // 原生的事件源 e
+      nativeEventTarget, // 原生的e.target
     );
-    accumulateTwoPhaseDispatches(event);
+    accumulateTwoPhaseDispatches(event);  // 这个函数按照冒泡捕获逻辑处理真正的事件函数，也就是  handleClick 事件
     return event;
   },
 };

@@ -260,51 +260,14 @@ function commitBeforeMutationLifeCycles(
           // We could update instance props and state here,
           // but instead we rely on them being set during last render.
           // TODO: revisit this when we implement resuming.
-          if (__DEV__) {
-            if (
-              finishedWork.type === finishedWork.elementType &&
-              !didWarnAboutReassigningProps
-            ) {
-              warning(
-                instance.props === finishedWork.memoizedProps,
-                'Expected %s props to match memoized props before ' +
-                  'getSnapshotBeforeUpdate. ' +
-                  'This might either be because of a bug in React, or because ' +
-                  'a component reassigns its own `this.props`. ' +
-                  'Please file an issue.',
-                getComponentName(finishedWork.type) || 'instance',
-              );
-              warning(
-                instance.state === finishedWork.memoizedState,
-                'Expected %s state to match memoized state before ' +
-                  'getSnapshotBeforeUpdate. ' +
-                  'This might either be because of a bug in React, or because ' +
-                  'a component reassigns its own `this.props`. ' +
-                  'Please file an issue.',
-                getComponentName(finishedWork.type) || 'instance',
-              );
-            }
-          }
+
           const snapshot = instance.getSnapshotBeforeUpdate(
             finishedWork.elementType === finishedWork.type
               ? prevProps
               : resolveDefaultProps(finishedWork.type, prevProps),
             prevState,
           );
-          if (__DEV__) {
-            const didWarnSet = ((didWarnAboutUndefinedSnapshotBeforeUpdate: any): Set<
-              mixed,
-            >);
-            if (snapshot === undefined && !didWarnSet.has(finishedWork.type)) {
-              didWarnSet.add(finishedWork.type);
-              warningWithoutStack(
-                false,
-                '%s.getSnapshotBeforeUpdate(): A snapshot value (or null) ' +
-                  'must be returned. You have returned undefined.',
-                getComponentName(finishedWork.type),
-              );
-            }
-          }
+
           instance.__reactInternalSnapshotBeforeUpdate = snapshot;
           stopPhaseTimer();
         }
@@ -351,41 +314,6 @@ function commitHookEffectList(
         // Mount
         const create = effect.create;
         effect.destroy = create();
-
-        if (__DEV__) {
-          const destroy = effect.destroy;
-          if (destroy !== undefined && typeof destroy !== 'function') {
-            let addendum;
-            if (destroy === null) {
-              addendum =
-                ' You returned null. If your effect does not require clean ' +
-                'up, return undefined (or nothing).';
-            } else if (typeof destroy.then === 'function') {
-              addendum =
-                '\n\nIt looks like you wrote useEffect(async () => ...) or returned a Promise. ' +
-                'Instead, write the async function inside your effect ' +
-                'and call it immediately:\n\n' +
-                'useEffect(() => {\n' +
-                '  async function fetchData() {\n' +
-                '    // You can await here\n' +
-                '    const response = await MyAPI.getData(someId);\n' +
-                '    // ...\n' +
-                '  }\n' +
-                '  fetchData();\n' +
-                `}, [someId]); // Or [] if effect doesn't need props or state\n\n` +
-                'Learn more about data fetching with Hooks: https://fb.me/react-hooks-data-fetching';
-            } else {
-              addendum = ' You returned: ' + destroy;
-            }
-            warningWithoutStack(
-              false,
-              'An effect function must not return anything besides a function, ' +
-                'which is used for clean-up.%s%s',
-              addendum,
-              getStackByFiberInDevAndProd(finishedWork),
-            );
-          }
-        }
       }
       effect = effect.next;
     } while (effect !== firstEffect);
@@ -429,31 +357,7 @@ function commitLifeCycles(
           // We could update instance props and state here,
           // but instead we rely on them being set during last render.
           // TODO: revisit this when we implement resuming.
-          if (__DEV__) {
-            if (
-              finishedWork.type === finishedWork.elementType &&
-              !didWarnAboutReassigningProps
-            ) {
-              warning(
-                instance.props === finishedWork.memoizedProps,
-                'Expected %s props to match memoized props before ' +
-                  'componentDidMount. ' +
-                  'This might either be because of a bug in React, or because ' +
-                  'a component reassigns its own `this.props`. ' +
-                  'Please file an issue.',
-                getComponentName(finishedWork.type) || 'instance',
-              );
-              warning(
-                instance.state === finishedWork.memoizedState,
-                'Expected %s state to match memoized state before ' +
-                  'componentDidMount. ' +
-                  'This might either be because of a bug in React, or because ' +
-                  'a component reassigns its own `this.props`. ' +
-                  'Please file an issue.',
-                getComponentName(finishedWork.type) || 'instance',
-              );
-            }
-          }
+
           instance.componentDidMount();
           stopPhaseTimer();
         } else {
@@ -466,31 +370,7 @@ function commitLifeCycles(
           // We could update instance props and state here,
           // but instead we rely on them being set during last render.
           // TODO: revisit this when we implement resuming.
-          if (__DEV__) {
-            if (
-              finishedWork.type === finishedWork.elementType &&
-              !didWarnAboutReassigningProps
-            ) {
-              warning(
-                instance.props === finishedWork.memoizedProps,
-                'Expected %s props to match memoized props before ' +
-                  'componentDidUpdate. ' +
-                  'This might either be because of a bug in React, or because ' +
-                  'a component reassigns its own `this.props`. ' +
-                  'Please file an issue.',
-                getComponentName(finishedWork.type) || 'instance',
-              );
-              warning(
-                instance.state === finishedWork.memoizedState,
-                'Expected %s state to match memoized state before ' +
-                  'componentDidUpdate. ' +
-                  'This might either be because of a bug in React, or because ' +
-                  'a component reassigns its own `this.props`. ' +
-                  'Please file an issue.',
-                getComponentName(finishedWork.type) || 'instance',
-              );
-            }
-          }
+
           instance.componentDidUpdate(
             prevProps,
             prevState,
@@ -501,31 +381,6 @@ function commitLifeCycles(
       }
       const updateQueue = finishedWork.updateQueue;
       if (updateQueue !== null) {
-        if (__DEV__) {
-          if (
-            finishedWork.type === finishedWork.elementType &&
-            !didWarnAboutReassigningProps
-          ) {
-            warning(
-              instance.props === finishedWork.memoizedProps,
-              'Expected %s props to match memoized props before ' +
-                'processing the update queue. ' +
-                'This might either be because of a bug in React, or because ' +
-                'a component reassigns its own `this.props`. ' +
-                'Please file an issue.',
-              getComponentName(finishedWork.type) || 'instance',
-            );
-            warning(
-              instance.state === finishedWork.memoizedState,
-              'Expected %s state to match memoized state before ' +
-                'processing the update queue. ' +
-                'This might either be because of a bug in React, or because ' +
-                'a component reassigns its own `this.props`. ' +
-                'Please file an issue.',
-              getComponentName(finishedWork.type) || 'instance',
-            );
-          }
-        }
         // We could update instance props and state here,
         // but instead we rely on them being set during last render.
         // TODO: revisit this when we implement resuming.

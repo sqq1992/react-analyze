@@ -4,17 +4,17 @@ function App2() {
 
     const [num, updateNum] = useState(0);
 
-    // useEffect(()=>{
-    //     console.log('mount1');
-    // },[])
-    //
-    // useEffect(()=>{
-    //     console.log('mount2');
-    // },[])
-    //
-    // useEffect(()=>{
-    //     console.log('mount3');
-    // },[])
+    useEffect(()=>{
+        console.log('mount1');
+    },[])
+
+    useEffect(()=>{
+        console.log('mount2');
+    },[])
+
+    useEffect(()=>{
+        console.log('mount3');
+    },[])
     //
     // useLayoutEffect(()=>{
     //
@@ -42,7 +42,8 @@ function App2() {
 
     const handleUpdateNum = (e) => {
 
-        updateNum(num + 1);
+        updateNum(num=>num+1);
+        updateNum(num=>num+2);
 
         //todo 事件池
         // console.log(e.target) // button
@@ -58,9 +59,9 @@ function App2() {
         // updateNum(state=>state+3);
     };
 
-    // const handleChangeInput = (value) => {
-    //     console.log('handleChangeInput', value);
-    // };
+    const handleChangeInput = (value) => {
+        console.log('handleChangeInput', value);
+    };
 
 
     return (
@@ -68,7 +69,7 @@ function App2() {
             <div id="diff">
                 {num % 2 === 0 ? a : b}
             </div>
-            <header className="App-header">
+            <header className="App-header" id="app-header">
                 <img
                     src="https://s5.mogucdn.com/mlcdn/55cf19/200825_6gdlkde9h6967i4gae8afa3k05lie_640x960.jpg_640x854.v1cAC.40.webp"
                     className="App-logo" alt="logo"/>
@@ -85,7 +86,7 @@ function App2() {
                     Learn React
                 </a>
             </header>
-            {/*<input  placeholder="请输入内容" onChange={ handleChangeInput }  />*/}
+            <input  placeholder="请输入内容" onChange={ handleChangeInput }  />
         </div>
     );
 }

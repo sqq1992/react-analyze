@@ -353,6 +353,7 @@ export function dispatchEvent(
     return;
   }
 
+  /* 尝试调度事件 */
   const blockedOn = attemptToDispatchEvent(
     topLevelType,
     eventSystemFlags,
@@ -425,7 +426,10 @@ export function attemptToDispatchEvent(
 ): null | Container | SuspenseInstance {
   // TODO: Warn if _enabled is false.
 
+  /* 获取原生事件 e.target */
   const nativeEventTarget = getEventTarget(nativeEvent);
+
+  /* 获取当前事件，最近的dom类型fiber ，我们 demo中 button 按钮对应的 fiber */
   let targetInst = getClosestInstanceFromNode(nativeEventTarget);
 
   if (targetInst !== null) {

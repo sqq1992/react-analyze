@@ -647,9 +647,6 @@ export function diffProperties(
   nextRawProps: Object,
   rootContainerElement: Element | Document,
 ): null | Array<mixed> {
-  if (__DEV__) {
-    validatePropertiesInDevelopment(tag, nextRawProps);
-  }
 
   let updatePayload: null | Array<any> = null;
 

@@ -40,38 +40,26 @@ function recomputePluginOrdering(): void {
     return;
   }
   for (const pluginName in namesToPlugins) {
+    /* 找到对应的事件处理插件，比如 SimpleEventPlugin  */
     const pluginModule = namesToPlugins[pluginName];
     const pluginIndex = eventPluginOrder.indexOf(pluginName);
-    invariant(
-      pluginIndex > -1,
-      'EventPluginRegistry: Cannot inject event plugins that do not exist in ' +
-        'the plugin ordering, `%s`.',
-      pluginName,
-    );
+
+
     if (plugins[pluginIndex]) {
       continue;
     }
-    invariant(
-      pluginModule.extractEvents,
-      'EventPluginRegistry: Event plugins must implement an `extractEvents` ' +
-        'method, but `%s` does not.',
-      pluginName,
-    );
+
     plugins[pluginIndex] = pluginModule;
     const publishedEvents = pluginModule.eventTypes;
     for (const eventName in publishedEvents) {
-      invariant(
 
-        // publishedEvents[eventName] -> eventConfig , pluginModule -> 事件插件 ， eventName -> 事件名称
-        publishEventForPlugin(
+      // publishedEvents[eventName] -> eventConfig , pluginModule -> 事件插件 ， eventName -> 事件名称
+      publishEventForPlugin(
           publishedEvents[eventName],
           pluginModule,
           eventName,
-        ),
-        'EventPluginRegistry: Failed to publish event `%s` for plugin `%s`.',
-        eventName,
-        pluginName,
-      );
+      )
+
     }
   }
 }
@@ -95,19 +83,18 @@ function publishEventForPlugin(
   pluginModule: PluginModule<AnyNativeEvent>,
   eventName: string,
 ): boolean {
-  invariant(
-    !eventNameDispatchConfigs.hasOwnProperty(eventName),
-    'EventPluginHub: More than one plugin attempted to publish the same ' +
-      'event name, `%s`.',
-    eventName,
-  );
-  eventNameDispatchConfigs[eventName] = dispatchConfig;
 
+  eventNameDispatchConfigs[eventName] = dispatchConfig;
+  /* 事件 */
   const phasedRegistrationNames = dispatchConfig.phasedRegistrationNames;
   if (phasedRegistrationNames) {
     for (const phaseName in phasedRegistrationNames) {
       if (phasedRegistrationNames.hasOwnProperty(phaseName)) {
+        // phasedRegistrationName React事件名 比如 onClick / onClickCapture
         const phasedRegistrationName = phasedRegistrationNames[phaseName];
+
+        // 填充形成 registrationNameModules React 合成事件 -> React 处理事件插件映射关系
+        // 填充形成 registrationNameDependencies React 合成事件 -> 原生事件 映射关系
         publishRegistrationName(
           phasedRegistrationName,
           pluginModule,
