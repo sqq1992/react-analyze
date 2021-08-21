@@ -9,10 +9,13 @@
 
 首次render阶段:
 (1).beginWork: 构建fiber树, 根据diff来尝试复用已有的fiber树
+针对classComponent: 在updateClassComponent中会初始化类组件, 并且执行getDerivedStateFromProps/getSnapshotBeforeUpdate或者componentWillMount
+
 (2).completeWork: 根据fiber, 来生成真实的dom节点
 (3).commitRoot: 执行最终操作
 
 update阶段
 (1).beginWork: 根据是否有fiber的alternate缓存, 来决定是否复用!
+针对classComponent: 执行componentWillReceiveProps->getDerivedStateFromProps->shouldComponentUpdate->componentWillUpdate
 (2).completeWork: 在它上面的completeUnitOfWork, 每个执行完completeWork且存在effectTag的Fiber节点会被保存在一条被称为effectList的单向链表中
 (3).commitRoot: 执行dom操作

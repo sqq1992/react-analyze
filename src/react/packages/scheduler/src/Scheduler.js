@@ -104,9 +104,13 @@ function advanceTimers(currentTime) {
 
 function handleTimeout(currentTime) {
   isHostTimeoutScheduled = false;
+
+  /* 将 timeQueue 中过期的任务，放在 taskQueue 中 。 */
   advanceTimers(currentTime);
 
+  /* 如果没有处于调度中 */
   if (!isHostCallbackScheduled) {
+
     if (peek(taskQueue) !== null) {
       isHostCallbackScheduled = true;
       requestHostCallback(flushWork);
@@ -323,13 +327,18 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
     expirationTime,
     sortIndex: -1,
   };
+
   if (enableProfiling) {
     newTask.isQueued = false;
   }
 
   if (startTime > currentTime) {
+
+    /* 通过开始时间排序 */
     // This is a delayed task.
     newTask.sortIndex = startTime;
+
+    /* 把任务放在timerQueue中 */
     push(timerQueue, newTask);
     if (peek(taskQueue) === null && newTask === peek(timerQueue)) {
       // All tasks are delayed, and this is the task with the earliest delay.
@@ -343,7 +352,11 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
       requestHostTimeout(handleTimeout, startTime - currentTime);
     }
   } else {
+
+    /* 通过 expirationTime 排序  */
     newTask.sortIndex = expirationTime;
+
+    /* 把任务放入taskQueue */
     push(taskQueue, newTask);
     if (enableProfiling) {
       markTaskStart(newTask, currentTime);

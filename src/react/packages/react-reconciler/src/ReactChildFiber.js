@@ -1166,10 +1166,7 @@ function ChildReconciler(shouldTrackSideEffects) {
           );
           existing.ref = coerceRef(returnFiber, child, element);
           existing.return = returnFiber;
-          if (__DEV__) {
-            existing._debugSource = element._source;
-            existing._debugOwner = element._owner;
-          }
+
           return existing;
         } else {
 

@@ -1,4 +1,4 @@
-import React, {useEffect, useLayoutEffect, useState} from 'react'
+import React, {Suspense, useEffect, useLayoutEffect, useState} from 'react'
 
 function App2() {
 
@@ -15,35 +15,35 @@ function App2() {
     useEffect(()=>{
         console.log('mount3');
     },[])
-    //
-    // useLayoutEffect(()=>{
-    //
-    //     if(num===2){
-    //         updateNum(num + "layout");
-    //     }
-    //
-    // },[num])
+
+    useLayoutEffect(()=>{
+
+        if(num===2){
+            updateNum(num + "layout");
+        }
+
+    },[num])
 
     const a = (
         <ul>
-            <li key="first" className="a">first</li>
-            <li key="third" className="cc">third</li>
-            <li key="second" className="b">second</li>
+            <li key="0">0</li>
+                <li key="1">1</li>
+            <li key="2">2</li>
         </ul>
     )
 
     const b = (
         <ul>
-            <li key="first" className="aa">first</li>
-            <li key="second" className="bb">second</li>
-            <li key="third" className="cc">third</li>
+            <li key="0">0</li>
+                <li key="1">1</li>
+
         </ul>
     )
 
     const handleUpdateNum = (e) => {
 
-        updateNum(num=>num+1);
-        updateNum(num=>num+2);
+        // updateNum(num=>num+1);
+        // updateNum(num=>num+2);
 
         //todo 事件池
         // console.log(e.target) // button
@@ -51,7 +51,7 @@ function App2() {
         //     console.log(e.target) // null
         // },0)
 
-        // updateNum(num + 1);
+        updateNum(num + 1);
         // setTimeout(()=>{
         //     updateNum(100);
         // },5000)
@@ -66,6 +66,7 @@ function App2() {
 
     return (
         <div className="App">
+            {/*<Suspense>3232</Suspense>*/}
             <div id="diff">
                 {num % 2 === 0 ? a : b}
             </div>

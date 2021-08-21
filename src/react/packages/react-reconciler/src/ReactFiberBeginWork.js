@@ -692,6 +692,7 @@ function updateFunctionComponent(
   return workInProgress.child;
 }
 
+/* workloop React 处理类组件的主要功能方法 */
 function updateClassComponent(
   current: Fiber | null,
   workInProgress: Fiber,
@@ -699,22 +700,6 @@ function updateClassComponent(
   nextProps,
   renderExpirationTime: ExpirationTime,
 ) {
-  if (__DEV__) {
-    if (workInProgress.type !== workInProgress.elementType) {
-      // Lazy component props can't be validated in createElement
-      // because they're only guaranteed to be resolved here.
-      const innerPropTypes = Component.propTypes;
-      if (innerPropTypes) {
-        checkPropTypes(
-          innerPropTypes,
-          nextProps, // Resolved props
-          'prop',
-          getComponentName(Component),
-          getCurrentFiberStackInDev,
-        );
-      }
-    }
-  }
 
   // Push context providers early to prevent context stack mismatches.
   // During mounting we don't know the child context yet as the instance doesn't exist.
@@ -728,6 +713,7 @@ function updateClassComponent(
   }
   prepareToReadContext(workInProgress, renderExpirationTime);
 
+  // stateNode 是 fiber 指向 类组件实例的指针。
   const instance = workInProgress.stateNode;
   let shouldUpdate;
   if (instance === null) {
@@ -741,6 +727,8 @@ function updateClassComponent(
       // Since this is conceptually a new fiber, schedule a Placement effect
       workInProgress.effectTag |= Placement;
     }
+
+    // 组件实例将在这个方法中被new。
     // In the initial pass we might need to construct the instance.
     constructClassInstance(
       workInProgress,
@@ -748,12 +736,16 @@ function updateClassComponent(
       nextProps,
       renderExpirationTime,
     );
+
+    //初始化挂载组件流程
     mountClassInstance(
       workInProgress,
       Component,
       nextProps,
       renderExpirationTime,
     );
+
+    // shouldUpdate 标识用来证明 组件是否需要更新。
     shouldUpdate = true;
   } else if (current === null) {
     // In a resume, we'll already have an instance we can reuse.
@@ -764,6 +756,8 @@ function updateClassComponent(
       renderExpirationTime,
     );
   } else {
+
+    // 更新组件流程
     shouldUpdate = updateClassInstance(
       current,
       workInProgress,
@@ -780,18 +774,7 @@ function updateClassComponent(
     hasContext,
     renderExpirationTime,
   );
-  if (__DEV__) {
-    let inst = workInProgress.stateNode;
-    if (inst.props !== nextProps) {
-      warning(
-        didWarnAboutReassigningProps,
-        'It looks like %s is reassigning its own `this.props` while rendering. ' +
-          'This is not supported and can lead to confusing bugs.',
-        getComponentName(workInProgress.type) || 'a component',
-      );
-      didWarnAboutReassigningProps = true;
-    }
-  }
+
   return nextUnitOfWork;
 }
 

@@ -22,7 +22,7 @@ export default class BatchUpdate extends React.Component {
   }
 
   render() {
-    console.log('render~')
+    console.log('render~', this);
     return (
       <div className="batchUpdate">
         <p onClick={this.handleUpdateNum}>计数器{this.state.num}</p>
