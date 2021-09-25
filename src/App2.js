@@ -1,5 +1,47 @@
 import React, {Suspense, useEffect, useLayoutEffect, useState} from 'react'
 
+import SuspenseIndex from './demos/suspense/index'
+
+function useSWR() {
+
+    const [data, setData] = useState({});
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        setLoading(true);
+        setTimeout(() => {
+            setData({
+                name: "sun",
+                age: 1992,
+                description: 'tiancai'
+            });
+            setLoading(false);
+        }, 3000);
+
+    }, []);
+
+    if (loading) {
+        throw Promise.resolve(null);
+    } else {
+        return { data };
+    }
+
+}
+
+
+function ShowPerson() {
+    const {data} = useSWR();
+
+    return(
+        <div>
+            <h3>name:{data.name}</h3>
+            <h3>age:{data.age}</h3>
+            <h3>description:{data.description}</h3>
+        </div>
+    )
+}
+
+
 function App2() {
 
     const [num, updateNum] = useState(0);
@@ -27,16 +69,14 @@ function App2() {
     const a = (
         <ul>
             <li key="0">0</li>
-                <li key="1">1</li>
-            <li key="2">2</li>
+            <li key="1">1</li>
         </ul>
     )
 
     const b = (
         <ul>
-            <li key="0">0</li>
-                <li key="1">1</li>
-
+            <div key="0">0</div>
+            <li key="1">1</li>
         </ul>
     )
 
@@ -51,12 +91,15 @@ function App2() {
         //     console.log(e.target) // null
         // },0)
 
-        updateNum(num + 1);
+        // updateNum(num + 1);
         // setTimeout(()=>{
         //     updateNum(100);
         // },5000)
         // updateNum(state=>state+2);
         // updateNum(state=>state+3);
+
+
+        updateNum(3);
     };
 
     const handleChangeInput = (value) => {
@@ -66,7 +109,11 @@ function App2() {
 
     return (
         <div className="App">
-            {/*<Suspense>3232</Suspense>*/}
+            {/*<Suspense fallback={(<div>suspense-loading</div>)}>*/}
+            {/*    <ShowPerson />*/}
+            {/*</Suspense>*/}
+
+            <SuspenseIndex />
             <div id="diff">
                 {num % 2 === 0 ? a : b}
             </div>

@@ -11,7 +11,7 @@ function requestData() {
     setTimeout(() => {
       data = 'Data resolved'
       resolve()
-    }, 2000)
+    }, 3000)
   })
   throw promise
 }
